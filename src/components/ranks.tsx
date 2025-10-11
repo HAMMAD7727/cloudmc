@@ -9,13 +9,13 @@ import {
   query,
   doc,
   deleteDoc,
+  setDoc,
+  addDoc
 } from "firebase/firestore";
 import {
   useCollection,
   useFirestore,
   useMemoFirebase,
-  addDocumentNonBlocking,
-  setDocumentNonBlocking,
   initiateAnonymousSignIn,
   useAuth,
   useUser,
@@ -152,17 +152,17 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
 
       if (rank) {
         const rankDocRef = doc(firestore, "ranks", rank.id);
-        await setDocumentNonBlocking(rankDocRef, rankData, { merge: true });
+        await setDoc(rankDocRef, rankData, { merge: true });
         toast({ title: "Rank Updated!", description: `${data.name} has been updated.` });
       } else {
         const ranksCollection = collection(firestore, "ranks");
-        await addDocumentNonBlocking(ranksCollection, rankData);
+        await addDoc(ranksCollection, rankData);
         toast({ title: "Rank Added!", description: `${data.name} has been added.` });
       }
       reset();
       onSave();
-    } catch (error) {
-       toast({ variant: "destructive", title: "Uh oh!", description: "Could not save the rank." });
+    } catch (error: any) {
+       toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Could not save the rank." });
     }
   };
 
@@ -239,8 +239,8 @@ export function Ranks() {
     try {
       await deleteDoc(doc(firestore, "ranks", rankId));
       toast({ title: "Success", description: "Rank deleted successfully." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Could not delete rank." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message || "Could not delete rank." });
     }
   };
 
