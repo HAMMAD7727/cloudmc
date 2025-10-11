@@ -10,6 +10,7 @@ import { Features } from "@/components/features";
 import { News } from "@/components/news";
 import { HomeContent } from "@/components/home-content";
 import { Feedback } from "@/components/feedback";
+import { Staff } from "@/components/staff";
 
 export default function Home() {
   const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
@@ -51,13 +52,14 @@ export default function Home() {
         <Tabs defaultValue="home" className="w-full">
           <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b z-10">
             <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-6 sm:inline-flex">
+              <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-7 sm:inline-flex">
                 <TabsTrigger value="home" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Home</TabsTrigger>
                 <TabsTrigger value="coins" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Coins</TabsTrigger>
                 <TabsTrigger value="ranks" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Ranks</TabsTrigger>
                 <TabsTrigger value="features" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Features</TabsTrigger>
                 <TabsTrigger value="news" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">News</TabsTrigger>
                 <TabsTrigger value="feedback" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Feedback</TabsTrigger>
+                <TabsTrigger value="staff" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Staff</TabsTrigger>
               </TabsList>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
@@ -80,6 +82,9 @@ export default function Home() {
           </TabsContent>
           <TabsContent value="feedback" className="mt-0">
             <Feedback />
+          </TabsContent>
+          <TabsContent value="staff" className="mt-0">
+            <Staff />
           </TabsContent>
         </Tabs>
       </main>
