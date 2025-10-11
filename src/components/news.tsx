@@ -21,7 +21,7 @@ export function News() {
         </div>
         <div className="max-w-3xl mx-auto space-y-8">
           {newsItems.map((item) => (
-            <Card key={item.title} className="w-full shadow-md">
+            <Card key={item.title} className="w-full shadow-md transform hover:-translate-y-2 transition-transform duration-300 hover:shadow-xl">
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <div className="bg-primary/10 p-3 rounded-full">

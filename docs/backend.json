@@ -112,10 +112,6 @@
       "type": "object",
       "description": "Represents user feedback submitted through the Cloudverse store.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the feedback entry."
-        },
         "playerName": {
           "type": "string",
           "description": "The name of the player submitting the feedback."
@@ -135,7 +131,6 @@
         }
       },
       "required": [
-        "id",
         "playerName",
         "rating",
         "message",

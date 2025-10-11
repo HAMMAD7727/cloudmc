@@ -1,8 +1,8 @@
 {
   "placeholderImages": [
     {
-      "id": "cloudmc-banner",
-      "description": "CloudMC banner with logo and abstract background",
+      "id": "cloudverse-banner",
+      "description": "Cloudverse banner with logo and abstract background",
       "imageUrl": "https://cloudmc.netlify.app/assets/nice%20pic.png",
       "imageHint": "minecraft abstract"
     }

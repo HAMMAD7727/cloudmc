@@ -7,9 +7,11 @@ import { CoinPacks } from "@/components/coin-packs";
 import { Ranks } from "@/components/ranks";
 import { Features } from "@/components/features";
 import { News } from "@/components/news";
+import { HomeContent } from "@/components/home-content";
+import { Feedback } from "@/components/feedback";
 
 export default function Home() {
-  const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudmc-banner');
+  const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -27,11 +29,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-4">
           {bannerImage &&
             <div className="bg-white/10 backdrop-blur-sm p-2 rounded-full mb-4">
-              <Image src={bannerImage.imageUrl} alt="CloudMC Logo" width={80} height={80} className="rounded-full" data-ai-hint={bannerImage.imageHint}/>
+              <Image src={bannerImage.imageUrl} alt="Cloudverse Logo" width={80} height={80} className="rounded-full" data-ai-hint={bannerImage.imageHint}/>
             </div>
           }
           <h1 className="text-4xl md:text-6xl font-bold text-white font-headline drop-shadow-lg">
-            CloudMC Store
+            Cloudverse Store
           </h1>
           <p className="mt-2 text-lg text-white/90 drop-shadow-md">
             Your one-stop shop for ranks, coins, and more!
@@ -47,15 +49,20 @@ export default function Home() {
       <main className="flex-grow">
         <Tabs defaultValue="home" className="w-full">
           <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b z-10">
-            <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-4">
+            <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-6">
               <TabsTrigger value="home" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Home</TabsTrigger>
+              <TabsTrigger value="coins" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Coins</TabsTrigger>
               <TabsTrigger value="ranks" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Ranks</TabsTrigger>
               <TabsTrigger value="features" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Features</TabsTrigger>
               <TabsTrigger value="news" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">News</TabsTrigger>
+              <TabsTrigger value="feedback" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base">Feedback</TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="home" className="mt-0">
+            <HomeContent />
+          </TabsContent>
+          <TabsContent value="coins" className="mt-0">
             <CoinPacks />
           </TabsContent>
           <TabsContent value="ranks" className="mt-0">
@@ -67,12 +74,18 @@ export default function Home() {
           <TabsContent value="news" className="mt-0">
             <News />
           </TabsContent>
+          <TabsContent value="feedback" className="mt-0">
+            <Feedback />
+          </TabsContent>
         </Tabs>
       </main>
       <footer className="bg-primary/5 border-t">
         <div className="container mx-auto py-6 text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} CloudMC. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Cloudverse. All rights reserved.</p>
           <p className="text-sm">This is a fan-made store and not affiliated with Mojang AB.</p>
+          <Button variant="link" asChild className="text-xs text-muted-foreground/50">
+            <Link href="/admin">Admin Panel</Link>
+          </Button>
         </div>
       </footer>
     </div>
