@@ -144,6 +144,35 @@
         "message",
         "submissionDate"
       ]
+    },
+    "StaffMember": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StaffMember",
+      "type": "object",
+      "description": "Represents a staff member displayed on the Cloudverse store.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the staff member."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the staff member's profile picture."
+        },
+        "rank": {
+          "type": "string",
+          "description": "The staff member's rank (e.g., Admin, Moderator)."
+        },
+        "roleDescription": {
+          "type": "string",
+          "description": "A brief description of the staff member's role."
+        },
+        "adminKey": {
+          "type": "string",
+          "description": "A secret key to authorize administrative actions."
+        }
+      },
+      "required": ["name", "imageUrl", "rank", "roleDescription"]
     }
   },
   "auth": {
@@ -218,6 +247,22 @@
           ]
         }
       },
+       {
+        "path": "/staff/{staffId}",
+        "definition": {
+          "entityName": "StaffMember",
+          "schema": {
+            "$ref": "#/backend/entities/StaffMember"
+          },
+          "description": "Stores information about staff members. Write access is restricted by an adminKey.",
+          "params": [
+            {
+              "name": "staffId",
+              "description": "Unique identifier for the staff member."
+            }
+          ]
+        }
+      },
       {
         "path": "/roles_admin/{userId}",
         "definition": {
@@ -235,6 +280,8 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by `adminKey`.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n\nEach collection stores data with homogenous security needs, simplifying the rules. All list operations are safe, as the rules don't rely on filtering data based on user roles or other attributes."
+    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by `adminKey`.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, write access controlled by `adminKey`.\n\nEach collection stores data with homogenous security needs, simplifying the rules. All list operations are safe, as the rules don't rely on filtering data based on user roles or other attributes."
   }
 }
+
+    
