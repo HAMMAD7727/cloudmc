@@ -291,5 +291,3 @@ export function Staff() {
     </section>
   );
 }
-
-    
