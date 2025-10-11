@@ -147,7 +147,7 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
       const rankData = {
         ...data,
         perks: data.perks.split('\n').filter(p => p.trim() !== ""),
-        adminKey: "jassiishammad",
+        adminKey: "hammadisjassi",
       };
 
       if (rank) {
