@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm, type SubmitHandler } from "react-hook-form";
@@ -78,7 +78,7 @@ const mySkills = [
 
 const staffMemberSchema = z.object({
   name: z.string().min(2, "Name is required."),
-  imageUrl: z.string().url("Please enter a valid image URL."),
+  imageUrl: z.any(),
   rank: z.string().min(2, "Rank is required."),
   roleDescription: z.string().min(10, "Description is required."),
 });
@@ -137,10 +137,29 @@ function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId
     },
   });
 
+  const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+
   const onSubmit: SubmitHandler<StaffFormValues> = async (data) => {
     if (!firestore) return;
     try {
-      const staffData = { ...data, adminKey: "cloudmcstaff" };
+      let imageUrl = staffMember?.imageUrl || '';
+      if (data.imageUrl && data.imageUrl[0] instanceof File) {
+        imageUrl = await toBase64(data.imageUrl[0]);
+      }
+
+      const staffData = { 
+        name: data.name,
+        rank: data.rank,
+        roleDescription: data.roleDescription,
+        imageUrl: imageUrl,
+        adminKey: "cloudmcstaff"
+      };
+
       if (staffMember) {
         await setDoc(doc(firestore, "staff", staffMember.id), staffData, { merge: true });
         toast({ title: "Staff Member Updated!", description: `${data.name} has been updated.` });
@@ -159,12 +178,19 @@ function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Input {...register("name")} placeholder="Staff Name" />
       {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
-      <Input {...register("imageUrl")} placeholder="Image URL" />
-      {errors.imageUrl && <p className="text-destructive text-sm">{errors.imageUrl.message}</p>}
+      
+      <div>
+        <label htmlFor="imageUrl" className="text-sm font-medium">Profile Image</label>
+        <Input {...register("imageUrl")} type="file" id="imageUrl" accept="image/*" />
+        {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
+      </div>
+
       <Input {...register("rank")} placeholder="Rank (e.g., Admin, Moderator)" />
       {errors.rank && <p className="text-destructive text-sm">{errors.rank.message}</p>}
+      
       <Textarea {...register("roleDescription")} placeholder="Role Description" rows={4} />
       {errors.roleDescription && <p className="text-destructive text-sm">{errors.roleDescription.message}</p>}
+      
       <DialogFooter>
         <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Staff Member"}</Button>
       </DialogFooter>
