@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -12,8 +13,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronsUpDown, Code, Gamepad2, Settings, Server } from "lucide-react";
+import { ChevronsUpDown, Code, Gamepad2, Settings } from "lucide-react";
 
 const skills = [
   {
@@ -43,9 +45,18 @@ export function Staff() {
     <section id="staff" className="w-full py-12 md:py-20 bg-primary/5">
       <div className="container mx-auto px-4 md:px-6 flex justify-center">
         <Card className="w-full max-w-2xl transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl">
-          <CardHeader className="text-center">
+          <CardHeader className="text-center items-center">
+             <Image
+              src="https://hammadprofile.netlify.app/imagie/hammad.webp"
+              alt="Hammad's Profile Picture"
+              width={96}
+              height={96}
+              className="rounded-full mb-4 border-4 border-primary/20 shadow-lg"
+            />
             <CardTitle className="text-3xl font-headline">Hammad</CardTitle>
-            <CardDescription>The developer of this website</CardDescription>
+            <Badge variant="secondary" className="text-sm font-bold uppercase tracking-wider bg-accent/80 text-accent-foreground">
+                Developer of this Website
+            </Badge>
           </CardHeader>
           <CardContent>
             <Collapsible className="w-full">

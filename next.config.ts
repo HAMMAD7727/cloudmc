@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'hammadprofile.netlify.app',
+        port: '',
+        pathname: '/imagie/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'placehold.co',
         port: '',
         pathname: '/**',
