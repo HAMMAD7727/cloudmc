@@ -48,7 +48,7 @@
           "type": "string",
           "description": "Unique identifier for the rank."
         },
-        "name": {
+        "name":. {
           "type": "string",
           "description": "Name of the rank (e.g., Warrior, Champion)."
         },
@@ -254,7 +254,7 @@
           "schema": {
             "$ref": "#/backend/entities/StaffMember"
           },
-          "description": "Stores information about staff members. Read access is public. Write access is restricted by an adminKey.",
+          "description": "Stores information about staff members. Read access is public. Write access is restricted by an adminKey. The security rule is: allow get, list: if true; allow create, update, delete: if request.resource.data.adminKey == 'cloudmcstaff';",
           "params": [
             {
               "name": "staffId",
