@@ -1,0 +1,91 @@
+/**
+ * @fileoverview Firestore Security Rules for the Cloudverse store.
+ *
+ * Core Philosophy:
+ * This ruleset provides open read access for all store data, while restricting write access.
+ * The 'feedback' collection allows unauthenticated submissions.
+ * The 'roles_admin' collection flags admin users.
+ *
+ * Data Structure:
+ * All data is stored in root-level collections:
+ * - /coin_packages/{coinPackageId}
+ * - /ranks/{rankId}
+ * - /news_items/{newsItemId}
+ * - /feedback/{feedbackId}
+ * - /roles_admin/{userId}
+ *
+ * Key Security Decisions:
+ * - Read access is generally public (`allow get, list: if true;`).
+ * - Write access is denied across all collections (`allow create, update, delete: if false;`) except for `feedback`, which allows open `create`.
+ * - The `roles_admin` collection is used to gate access to admin functions, and it grants read and write access to a user if a document with their userId exists under the `roles_admin` collection.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Grants open read access to coin packages and restricts write access.
+     * @path /coin_packages/{coinPackageId}
+     * @allow (get, list): Any user can read coin package information.
+     * @deny (create, update, delete): No user can create, update, or delete coin packages.
+     * @principle Grants open read access and restricts all writes.
+     */
+    match /coin_packages/{coinPackageId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Grants open read access to ranks and restricts write access.
+     * @path /ranks/{rankId}
+     * @allow (get, list): Any user can read rank information.
+     * @deny (create, update, delete): No user can create, update, or delete ranks.
+     * @principle Grants open read access and restricts all writes.
+     */
+    match /ranks/{rankId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Grants open read access to news items and restricts write access.
+     * @path /news_items/{newsItemId}
+     * @allow (get, list): Any user can read news items.
+     * @deny (create, update, delete): No user can create, update, or delete news items.
+     * @principle Grants open read access and restricts all writes.
+     */
+    match /news_items/{newsItemId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Allows open feedback submission and restricts updates/deletes.
+     * @path /feedback/{feedbackId}
+     * @allow (create): Any user can submit feedback.
+     * @allow (get, list): Any user can read feedback.
+     * @deny (update, delete): No user can update or delete feedback.
+     * @principle Allows open creation, and restricts all updates and deletes.
+     */
+    match /feedback/{feedbackId} {
+      allow get, list, create: if true;
+      allow update, delete: if false;
+    }
+
+     /**
+     * @description Controls admin access to restricted features.
+     * @path /roles_admin/{userId}
+     * @allow (get, list): Any user can read list admin roles.
+     * @allow (create, update, delete): Only the user themself can create, update, or delete their admin role.
+     */
+    match /roles_admin/{userId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+        allow list: if true;
+    }
+
+    // Helper function to check if a user is signed in.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+  }
+}
