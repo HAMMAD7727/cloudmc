@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { addDocumentNonBlocking, useCollection, useFirestore, type WithId } from "@/firebase";
+import { addDocumentNonBlocking, useCollection, useFirestore, useMemoFirebase, type WithId } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 
 const feedbackSchema = z.object({
@@ -38,7 +38,11 @@ type FeedbackEntry = {
 
 function FeedbackList() {
   const firestore = useFirestore();
-  const feedbackQuery = firestore ? query(collection(firestore, "feedback"), orderBy("submissionDate", "desc"), limit(20)) : null;
+  const feedbackQuery = useMemoFirebase(() => 
+    firestore 
+      ? query(collection(firestore, "feedback"), orderBy("submissionDate", "desc"), limit(20)) 
+      : null
+  , [firestore]);
   const { data: feedback, isLoading } = useCollection<FeedbackEntry>(feedbackQuery);
 
   if (isLoading) {

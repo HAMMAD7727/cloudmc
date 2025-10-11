@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useCollection, useFirestore } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query } from "firebase/firestore";
 import type { WithId } from "@/firebase";
 
@@ -18,7 +18,7 @@ type FeedbackEntry = {
 
 function AdminDashboard() {
   const firestore = useFirestore();
-  const feedbackCollection = firestore ? query(collection(firestore, "feedback")) : null;
+  const feedbackCollection = useMemoFirebase(() => firestore ? query(collection(firestore, "feedback")) : null, [firestore]);
   const { data: feedback, isLoading } = useCollection<FeedbackEntry>(feedbackCollection);
 
   if (isLoading) {
