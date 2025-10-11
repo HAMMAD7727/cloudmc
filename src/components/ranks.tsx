@@ -16,6 +16,9 @@ import {
   useMemoFirebase,
   addDocumentNonBlocking,
   setDocumentNonBlocking,
+  initiateAnonymousSignIn,
+  useAuth,
+  useUser,
   type WithId,
 } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
@@ -76,11 +79,13 @@ const icons = {
 function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
+  const auth = useAuth();
 
   const handleLogin = () => {
     if (password === "hammadisjassi") {
-      onLogin();
+      initiateAnonymousSignIn(auth);
       sessionStorage.setItem("isRankAdminAuthenticated", "true");
+      onLogin();
       toast({ title: "Success", description: "Logged in as rank admin." });
     } else {
       toast({ variant: "destructive", title: "Error", description: "Incorrect password." });
@@ -202,6 +207,7 @@ export function Ranks() {
   const ranksQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "ranks")) : null, [firestore]);
   const { data: ranks, isLoading } = useCollection<Rank>(ranksQuery);
   const { toast } = useToast();
+  const { user } = useUser();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -209,10 +215,10 @@ export function Ranks() {
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem("isRankAdminAuthenticated");
-    if (sessionAuth === "true") {
+    if (sessionAuth === "true" && user) {
       setIsAuthenticated(true);
     }
-  }, []);
+  }, [user]);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -317,5 +323,3 @@ export function Ranks() {
     </section>
   );
 }
-
-    

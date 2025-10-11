@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, useAuth, initiateAnonymousSignIn, useUser } from "@/firebase";
 import { collection, query } from "firebase/firestore";
 import type { WithId } from "@/firebase";
 
@@ -74,19 +74,21 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const auth = useAuth();
+  const { user } = useUser();
 
-  // Check session storage for authentication status
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem("isAdminAuthenticated");
-    if (sessionAuth === "true") {
+    if (sessionAuth === "true" && user) {
       setIsAuthenticated(true);
     }
-  }, []);
+  }, [user]);
 
   const handleLogin = () => {
     if (password === "hammadcloudverse") {
+      initiateAnonymousSignIn(auth);
+      sessionStorage.setItem("isAdminAuthenticated", "true");
       setIsAuthenticated(true);
-      sessionStorage.setItem("isAdminAuthenticated", "true"); // Store auth state in session
       toast({
         title: "Success",
         description: "Logged in to admin panel.",
