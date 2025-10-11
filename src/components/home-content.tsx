@@ -11,7 +11,7 @@ export function HomeContent() {
               Cloudverse is a free-to-play Public Minecraft Server. Items can be purchased here to enhance gameplay and grant the player various special perks.
             </p>
           </div>
-          <Card className="transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-xl">
+          <Card className="transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-xl">
             <CardHeader>
               <CardTitle className="font-headline text-2xl">Refund Policy</CardTitle>
             </CardHeader>

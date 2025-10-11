@@ -23,7 +23,7 @@ export function CoinPacks() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {coinPacks.map((pack) => (
-            <Card key={pack.name} className="flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-xl">
+            <Card key={pack.name} className="flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl">
               {pack.popular && (
                 <Badge className="absolute -top-3 right-3 bg-primary text-primary-foreground">MOST POPULAR</Badge>
               )}

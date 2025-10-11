@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -56,7 +55,7 @@ function FeedbackList() {
   return (
      <div className="space-y-4">
         {feedback.map((item: WithId<FeedbackEntry>) => (
-          <Card key={item.id} className="transform hover:-translate-y-1 transition-transform duration-200">
+          <Card key={item.id} className="transform hover:-translate-y-1 transition-transform duration-200 hover:shadow-lg">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -135,7 +134,7 @@ export function Feedback() {
     <section id="feedback" className="w-full py-12 md:py-20 bg-primary/5">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-            <Card className="w-full shadow-lg transform hover:-translate-y-2 transition-transform duration-300 hover:shadow-xl self-start">
+            <Card className="w-full shadow-lg transform hover:-translate-y-2 transition-transform duration-300 hover:shadow-primary/20 hover:shadow-2xl self-start">
               <CardHeader>
                 <CardTitle className="text-3xl font-bold tracking-tight font-headline text-center">
                   Share Your Feedback
@@ -166,7 +165,7 @@ export function Feedback() {
                         <Star
                           key={star}
                           className={cn(
-                            "w-8 h-8 cursor-pointer transition-colors",
+                            "w-8 h-8 cursor-pointer transition-colors duration-200 hover:scale-110",
                             (hoverRating >= star || rating >= star)
                               ? "text-yellow-400 fill-yellow-400"
                               : "text-muted-foreground"
@@ -203,7 +202,7 @@ export function Feedback() {
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full transition-transform duration-300 hover:scale-105"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Submitting..." : "Submit Feedback"}

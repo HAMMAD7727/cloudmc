@@ -247,7 +247,7 @@ export function Ranks() {
   const renderRankCard = (rank: WithId<Rank>) => {
     const RankIcon = icons[rank.icon as keyof typeof icons] || Shield;
     return (
-      <Card key={rank.id} className={cn("flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-xl", rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")}>
+      <Card key={rank.id} className={cn("flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl", rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")}>
         {rank.bestValue && (
           <Badge className="absolute -top-3 right-3 bg-accent text-accent-foreground hover:bg-accent/90" >BEST VALUE</Badge>
         )}
