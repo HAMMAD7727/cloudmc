@@ -12,7 +12,7 @@ interface FirebaseClientProviderProps {
 
 export function FirebaseClientProvider({ children, config }: FirebaseClientProviderProps) {
   const firebaseServices = useMemo(() => {
-    // Initialize Firebase on the client side, once per component mount.
+    // Initialize Firebase on the client side, using the config passed as a prop.
     return initializeFirebase(config);
   }, [config]);
 

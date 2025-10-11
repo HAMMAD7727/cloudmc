@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
+import { firebaseConfig } from '@/firebase/config';
 
 export const metadata: Metadata = {
   title: 'Cloudverse Store',
@@ -14,20 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const firebaseConfig = {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-      measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-  };
-
+  // The config is now imported directly from a dedicated file.
   const missingConfig = Object.entries(firebaseConfig).filter(([key, value]) => !value);
   if (missingConfig.length > 0) {
     const missingKeys = missingConfig.map(([key]) => key).join(", ");
-    throw new Error(`Missing Firebase config. Please set the following environment variables: ${missingKeys}`);
+    // This error will now clearly indicate if the config file itself is missing values.
+    throw new Error(`Missing values in Firebase config file (src/firebase/config.ts): ${missingKeys}`);
   }
 
   return (
