@@ -299,7 +299,9 @@ export function Staff() {
                   </div>
                 )}
                 <CardHeader>
-                  <Image src={member.imageUrl} alt={`${member.name}'s profile picture`} width={80} height={80} className="rounded-full border-4 border-primary/10 shadow-md mx-auto"/>
+                  {member.imageUrl && (
+                    <Image src={member.imageUrl} alt={`${member.name}'s profile picture`} width={80} height={80} className="rounded-full border-4 border-primary/10 shadow-md mx-auto"/>
+                  )}
                   <CardTitle className="text-2xl font-headline mt-4">{member.name}</CardTitle>
                   <Badge variant="secondary">{member.rank}</Badge>
                 </CardHeader>
