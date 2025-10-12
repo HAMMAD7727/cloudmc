@@ -85,11 +85,7 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const handleLogin = async () => {
     if (password === "hammadisjassi") {
       try {
-        const cred = await initiateAnonymousSignIn(auth);
-        if (cred?.user && firestore) {
-          const adminDocRef = doc(firestore, 'admins', cred.user.uid);
-          setDocumentNonBlocking(adminDocRef, { isAdmin: true }, {});
-        }
+        await initiateAnonymousSignIn(auth);
         sessionStorage.setItem("isRankAdminAuthenticated", "true");
         onLogin();
         toast({ title: "Success", description: "Logged in as rank admin." });
@@ -156,19 +152,24 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
       const rankData = {
         ...data,
         perks: data.perks.split('\n').filter(p => p.trim() !== ""),
+        adminKey: "hammadisjassi",
       };
 
-      if (rank) {
-        const rankDocRef = doc(firestore, "ranks", rank.id);
-        setDocumentNonBlocking(rankDocRef, rankData, { merge: true });
-        toast({ title: "Rank Updated!", description: `${data.name} has been updated.` });
-      } else {
-        const ranksCollection = collection(firestore, "ranks");
-        addDocumentNonBlocking(ranksCollection, rankData);
-        toast({ title: "Rank Added!", description: `${data.name} has been added.` });
+      try {
+        if (rank) {
+          const rankDocRef = doc(firestore, "ranks", rank.id);
+          await setDocumentNonBlocking(rankDocRef, rankData, { merge: true });
+          toast({ title: "Rank Updated!", description: `${data.name} has been updated.` });
+        } else {
+          const ranksCollection = collection(firestore, "ranks");
+          await addDocumentNonBlocking(ranksCollection, rankData);
+          toast({ title: "Rank Added!", description: `${data.name} has been added.` });
+        }
+        reset();
+        onSave();
+      } catch (error) {
+         toast({ variant: "destructive", title: "Error", description: "An error occurred." });
       }
-      reset();
-      onSave();
   };
 
   return (
@@ -242,7 +243,7 @@ export function Ranks() {
   const handleDelete = async (rankId: string) => {
     if (!firestore || !window.confirm("Are you sure you want to delete this rank?")) return;
     const rankDocRef = doc(firestore, "ranks", rankId);
-    deleteDocumentNonBlocking(rankDocRef);
+    await deleteDocumentNonBlocking(rankDocRef);
     toast({ title: "Success", description: "Rank deleted successfully." });
   };
 
@@ -325,3 +326,5 @@ export function Ranks() {
     </section>
   );
 }
+
+    
