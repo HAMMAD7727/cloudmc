@@ -169,6 +169,19 @@
         }
       },
       "required": ["name", "imageUrl", "rank", "roleDescription"]
+    },
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator with special privileges.",
+      "properties": {
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Flag indicating administrative privileges."
+        }
+      },
+      "required": ["isAdmin"]
     }
   },
   "auth": {
@@ -202,7 +215,7 @@
           "schema": {
             "$ref": "#/backend/entities/Rank"
           },
-          "description": "Stores information about ranks available for purchase. Write access is restricted by an adminKey.",
+          "description": "Stores information about ranks available for purchase. Read access is public. Write access is restricted to authenticated admins.",
           "params": [
             {
               "name": "rankId",
@@ -260,6 +273,22 @@
         }
       },
       {
+        "path": "/admins/{userId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Stores admin user flags. Only admins can write to other users' admin status.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The UID of the user."
+            }
+          ]
+        }
+      },
+      {
         "path": "/roles_admin/{userId}",
         "definition": {
           "entityName": "adminRole",
@@ -276,6 +305,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by `adminKey`.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, read access is public, and write access controlled by `adminKey`.\n\nEach collection stores data with homogenous security needs, simplifying the rules. All list operations are safe, as the rules don't rely on filtering data based on user roles or other attributes."
+    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by admin status.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, read access is public, and write access controlled by `adminKey`.\n*   `admins`: Stores flags to identify administrators for role-based access control.\n\nEach collection stores data with homogenous security needs, simplifying the rules. All list operations are safe, as the rules don't rely on filtering data based on user roles or other attributes."
   }
 }

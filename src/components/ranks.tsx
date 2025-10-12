@@ -80,13 +80,22 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const auth = useAuth();
+  const firestore = useFirestore();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (password === "hammadisjassi") {
-      initiateAnonymousSignIn(auth);
-      sessionStorage.setItem("isRankAdminAuthenticated", "true");
-      onLogin();
-      toast({ title: "Success", description: "Logged in as rank admin." });
+      try {
+        const cred = await initiateAnonymousSignIn(auth);
+        if (cred?.user && firestore) {
+          const adminDocRef = doc(firestore, 'admins', cred.user.uid);
+          setDocumentNonBlocking(adminDocRef, { isAdmin: true }, {});
+        }
+        sessionStorage.setItem("isRankAdminAuthenticated", "true");
+        onLogin();
+        toast({ title: "Success", description: "Logged in as rank admin." });
+      } catch (error) {
+         toast({ variant: "destructive", title: "Error", description: "Login failed." });
+      }
     } else {
       toast({ variant: "destructive", title: "Error", description: "Incorrect password." });
     }
