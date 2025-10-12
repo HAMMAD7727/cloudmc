@@ -48,7 +48,7 @@
           "type": "string",
           "description": "Unique identifier for the rank."
         },
-        "name":. {
+        "name": {
           "type": "string",
           "description": "Name of the rank (e.g., Warrior, Champion)."
         },
@@ -66,10 +66,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "adminKey": {
-          "type": "string",
-          "description": "A secret key to authorize administrative actions."
         }
       },
       "required": [

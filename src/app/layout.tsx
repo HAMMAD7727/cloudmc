@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
@@ -15,15 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const missingConfig = Object.entries(firebaseConfig).filter(([key, value]) => !value);
+  const missingConfig = Object.entries(firebaseConfig).filter(([_, value]) => !value);
   if (missingConfig.length > 0) {
-    const missingKeys = missingConfig.map(([key]) => key).join(", ");
-    // This check is now more for local development if the config is accidentally cleared.
-    // In production, this should not be hit if config is hardcoded.
-    if(missingKeys.includes("measurementId") && missingConfig.length === 1) {
-        // It's okay if only measurementId is missing.
-    } else {
-        throw new Error(`Missing Firebase config values for: ${missingKeys}`);
+    const missingKeys = missingConfig.map(([key]) => key).join(', ');
+    // Allow missing measurementId only in dev mode
+    if (!(missingKeys.includes('measurementId') && missingConfig.length === 1)) {
+      throw new Error(`Missing Firebase config values for: ${missingKeys}`);
     }
   }
 
@@ -32,7 +29,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider config={firebaseConfig}>

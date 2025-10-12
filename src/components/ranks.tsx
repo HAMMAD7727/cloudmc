@@ -8,9 +8,6 @@ import {
   collection,
   query,
   doc,
-  deleteDoc,
-  setDoc,
-  addDoc
 } from "firebase/firestore";
 import {
   useCollection,
@@ -20,6 +17,9 @@ import {
   useAuth,
   useUser,
   type WithId,
+  addDocumentNonBlocking,
+  setDocumentNonBlocking,
+  deleteDocumentNonBlocking,
 } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -143,27 +143,23 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
 
   const onSubmit: SubmitHandler<RankFormValues> = async (data) => {
      if (!firestore) return;
-    try {
+
       const rankData = {
         ...data,
         perks: data.perks.split('\n').filter(p => p.trim() !== ""),
-        adminKey: "hammadisjassi",
       };
 
       if (rank) {
         const rankDocRef = doc(firestore, "ranks", rank.id);
-        await setDoc(rankDocRef, rankData, { merge: true });
+        setDocumentNonBlocking(rankDocRef, rankData, { merge: true });
         toast({ title: "Rank Updated!", description: `${data.name} has been updated.` });
       } else {
         const ranksCollection = collection(firestore, "ranks");
-        await addDoc(ranksCollection, rankData);
+        addDocumentNonBlocking(ranksCollection, rankData);
         toast({ title: "Rank Added!", description: `${data.name} has been added.` });
       }
       reset();
       onSave();
-    } catch (error: any) {
-       toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Could not save the rank." });
-    }
   };
 
   return (
@@ -236,12 +232,9 @@ export function Ranks() {
 
   const handleDelete = async (rankId: string) => {
     if (!firestore || !window.confirm("Are you sure you want to delete this rank?")) return;
-    try {
-      await deleteDoc(doc(firestore, "ranks", rankId));
-      toast({ title: "Success", description: "Rank deleted successfully." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message || "Could not delete rank." });
-    }
+    const rankDocRef = doc(firestore, "ranks", rankId);
+    deleteDocumentNonBlocking(rankDocRef);
+    toast({ title: "Success", description: "Rank deleted successfully." });
   };
 
   const renderRankCard = (rank: WithId<Rank>) => {

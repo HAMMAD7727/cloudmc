@@ -10,9 +10,6 @@ import {
   collection,
   query,
   doc,
-  deleteDoc,
-  setDoc,
-  addDoc
 } from "firebase/firestore";
 import {
   useCollection,
@@ -22,6 +19,9 @@ import {
   useAuth,
   useUser,
   type WithId,
+  addDocumentNonBlocking,
+  setDocumentNonBlocking,
+  deleteDocumentNonBlocking,
 } from "@/firebase";
 import {
   Card,
@@ -161,10 +161,10 @@ function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId
       };
 
       if (staffMember) {
-        await setDoc(doc(firestore, "staff", staffMember.id), staffData, { merge: true });
+        setDocumentNonBlocking(doc(firestore, "staff", staffMember.id), staffData, { merge: true });
         toast({ title: "Staff Member Updated!", description: `${data.name} has been updated.` });
       } else {
-        await addDoc(collection(firestore, "staff"), staffData);
+        addDocumentNonBlocking(collection(firestore, "staff"), staffData);
         toast({ title: "Staff Member Added!", description: `${data.name} has been added.` });
       }
       reset();
@@ -229,12 +229,9 @@ export function Staff() {
 
   const handleDelete = async (staffId: string) => {
     if (!firestore || !window.confirm("Are you sure?")) return;
-    try {
-      await deleteDoc(doc(firestore, "staff", staffId));
-      toast({ title: "Success", description: "Staff member removed." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message || "Could not remove staff member." });
-    }
+    const staffDocRef = doc(firestore, "staff", staffId);
+    deleteDocumentNonBlocking(staffDocRef);
+    toast({ title: "Success", description: "Staff member removed." });
   };
 
   return (
