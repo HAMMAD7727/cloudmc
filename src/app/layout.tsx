@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
-import type { FirebaseOptions } from 'firebase/app';
+import { firebaseConfig } from '@/firebase/config';
 
 export const metadata: Metadata = {
   title: 'Cloudverse Store',
@@ -14,27 +14,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const firebaseConfig: FirebaseOptions = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-  };
 
-  const missingConfig = Object.entries(firebaseConfig).filter(([key, value]) => !value && key !== 'measurementId');
+  const missingConfig = Object.entries(firebaseConfig).filter(([key, value]) => !value);
   if (missingConfig.length > 0) {
-    const missingKeys = missingConfig.map(([key]) => `NEXT_PUBLIC_FIREBASE_${key.toUpperCase()}`).join(", ");
-    throw new Error(`Missing Firebase config. Please set the following environment variables: ${missingKeys}`);
+    const missingKeys = missingConfig.map(([key]) => key).join(", ");
+    // This check is now more for local development if the config is accidentally cleared.
+    // In production, this should not be hit if config is hardcoded.
+    if(missingKeys.includes("measurementId") && missingConfig.length === 1) {
+        // It's okay if only measurementId is missing.
+    } else {
+        throw new Error(`Missing Firebase config values for: ${missingKeys}`);
+    }
   }
 
   return (
     <html lang="en" className="light">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
