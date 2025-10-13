@@ -198,25 +198,20 @@ function TicketList() {
   const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
   
   const ticketsQuery = useMemoFirebase(() => {
-    if (!firestore || !user || !isStaff) return null;
+    if (!firestore || !user) return null;
     
     const ticketsCollection = collection(firestore, "support_tickets");
     
-    // Admins can list all tickets, sorted by date.
-    return query(ticketsCollection, orderBy("createdAt", "desc"));
+    if (isStaff) {
+        // Admins can list all tickets, sorted by date.
+        return query(ticketsCollection, orderBy("createdAt", "desc"));
+    } else {
+        // Normal users can list only their own tickets, filtered by userId.
+        return query(ticketsCollection, where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+    }
   }, [firestore, user, isStaff]);
 
   const { data: tickets, isLoading } = useCollection<Ticket>(ticketsQuery);
-
-  // If the user is not staff, don't show the ticket list at all.
-  if (!isStaff) {
-    return (
-        <div className="text-center mt-8">
-            <p className="text-muted-foreground">You have successfully created a ticket. An admin will be in touch shortly.</p>
-            <p className="text-muted-foreground text-sm">You do not have permission to view tickets.</p>
-        </div>
-    );
-  }
 
   if (isLoading) return <p>Loading tickets...</p>;
   if (!tickets || tickets.length === 0) return <p className="text-center mt-8">No tickets found.</p>;
@@ -269,24 +264,20 @@ function TicketList() {
 export function SupportTickets() {
   const { user } = useUser();
   const [showCreate, setShowCreate] = useState(true);
-  const [ticketCreated, setTicketCreated] = useState(false);
 
   if (!user) {
     return <p className="text-center">Please log in to create or view support tickets.</p>;
   }
   
   const handleTicketCreation = () => {
-    setShowCreate(false);
-    setTicketCreated(true);
+    // We can decide if we want to hide the form after creation.
+    // For now, we'll keep it visible.
   }
 
   return (
     <div>
-      {showCreate && <CreateTicketForm onTicketCreated={handleTicketCreation} />}
-      
-      {ticketCreated && <TicketList />}
+      <CreateTicketForm onTicketCreated={handleTicketCreation} />
+      <TicketList />
     </div>
   );
 }
-
-    
