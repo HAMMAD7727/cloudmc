@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,8 +9,10 @@ import {
   useUser,
   useFirestore,
   useCollection,
+  useDoc,
   useMemoFirebase,
   addDocumentNonBlocking,
+  setDocumentNonBlocking,
   type WithId,
 } from "@/firebase";
 import {
@@ -18,7 +20,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { collection, query, orderBy, limit } from "firebase/firestore";
+import { collection, query, orderBy, limit, doc, getDoc, writeBatch } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -36,10 +38,20 @@ const authSchema = z.object({
 });
 type AuthFormValues = z.infer<typeof authSchema>;
 
+const profileSchema = z.object({
+  displayName: z
+    .string()
+    .min(3, "Display name must be at least 3 characters.")
+    .max(15, "Display name cannot exceed 15 characters.")
+    .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores are allowed."),
+});
+type ProfileFormValues = z.infer<typeof profileSchema>;
+
+
 type ChatMessage = {
   text: string;
   userId: string;
-  userEmail: string;
+  displayName: string;
   createdAt: string;
 };
 
@@ -48,6 +60,57 @@ type StaffMember = {
   name: string;
   rank: string;
 };
+
+type UserProfile = {
+    displayName: string;
+}
+
+function UpdateProfileForm() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+  });
+
+  const onSubmit: SubmitHandler<ProfileFormValues> = async ({ displayName }) => {
+    if (!firestore || !user) return;
+    
+    // Check if display name is unique
+    const profileRef = doc(firestore, "users", user.uid);
+
+    try {
+        const batch = writeBatch(firestore);
+        batch.set(profileRef, { displayName });
+        await batch.commit();
+        toast({ title: "Profile Updated!", description: "Your display name has been set." });
+    } catch (error: any) {
+         if(error.code === 'permission-denied') {
+            toast({ variant: "destructive", title: "Display Name Taken", description: "That display name is already in use. Please choose another." });
+         } else {
+            toast({ variant: "destructive", title: "Error", description: "Could not update profile." });
+         }
+    }
+  };
+
+  return (
+    <div className="text-center p-8 border rounded-lg">
+        <h3 className="text-xl font-semibold mb-2">Welcome!</h3>
+        <p className="text-muted-foreground mb-4">Please set your display name to start chatting.</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-sm mx-auto">
+            <Input {...register("displayName")} placeholder="Choose a display name" />
+            {errors.displayName && <p className="text-destructive text-sm">{errors.displayName.message}</p>}
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+                {isSubmitting ? "Saving..." : "Save Display Name"}
+            </Button>
+        </form>
+    </div>
+  )
+}
 
 function ChatMessages({ staffMembers }: { staffMembers: WithId<StaffMember>[] }) {
   const firestore = useFirestore();
@@ -68,8 +131,8 @@ function ChatMessages({ staffMembers }: { staffMembers: WithId<StaffMember>[] })
   const reversedMessages = useMemoFirebase(() => messages ? [...messages].reverse() : [], [messages]);
   
   const getStaffRank = (email: string) => {
-    const staff = staffMembers.find(s => s.email === email);
-    return staff ? staff.rank : null;
+    // This part might need adjustment if we move away from email identity
+    return null;
   }
 
   useEffect(() => {
@@ -82,11 +145,11 @@ function ChatMessages({ staffMembers }: { staffMembers: WithId<StaffMember>[] })
     <div className="h-96 overflow-y-auto p-4 border rounded-md space-y-4 bg-muted/20">
       {reversedMessages && reversedMessages.length > 0 ? (
         reversedMessages.map((msg) => {
-          const staffRank = getStaffRank(msg.userEmail);
+          const staffRank = getStaffRank(msg.userId); // This logic needs to be revisited
           return (
             <div key={msg.id} className="flex flex-col items-start">
                <div className="flex items-center gap-2">
-                <span className="font-bold">{msg.userEmail.split('@')[0]}</span>
+                <span className="font-bold">{msg.displayName}</span>
                 {staffRank && <Badge variant="secondary">{staffRank}</Badge>}
                </div>
               <p className="bg-white p-2 rounded-lg shadow-sm">{msg.text}</p>
@@ -120,7 +183,7 @@ function ChatAuth() {
     try {
       if (isSigningUp) {
         await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: "Success", description: "Signed up successfully!" });
+        toast({ title: "Success", description: "Account created! Please choose a display name." });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Success", description: "Logged in successfully!" });
@@ -174,6 +237,9 @@ export function LiveChat() {
   const auth = useAuth();
   const { toast } = useToast();
 
+  const userProfileRef = useMemoFirebase(() => (firestore && user) ? doc(firestore, 'users', user.uid) : null, [firestore, user]);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
   const {
     register,
     handleSubmit,
@@ -200,11 +266,11 @@ export function LiveChat() {
   };
 
   const onSubmit: SubmitHandler<MessageFormValues> = async ({ text }) => {
-    if (!firestore || !user) return;
+    if (!firestore || !user || !userProfile) return;
     const messageData = {
       text,
       userId: user.uid,
-      userEmail: user.email!,
+      displayName: userProfile.displayName,
       createdAt: new Date().toISOString(),
     };
     const messagesCollection = collection(firestore, "chat_messages");
@@ -212,16 +278,20 @@ export function LiveChat() {
     reset();
   };
 
-  if (isUserLoading || !staffMembers) return <p>Loading chat...</p>;
+  if (isUserLoading || isProfileLoading || !staffMembers) return <p>Loading chat...</p>;
 
   if (!user) {
     return <ChatAuth />;
   }
 
+  if (!userProfile) {
+    return <UpdateProfileForm />
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p>Logged in as <span className="font-bold">{user.email}</span></p>
+        <p>Logged in as <span className="font-bold">{userProfile.displayName}</span></p>
         <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
       </div>
       <ChatMessages staffMembers={staffMembers} />

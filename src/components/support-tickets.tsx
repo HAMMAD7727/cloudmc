@@ -13,7 +13,7 @@ import {
   updateDocumentNonBlocking,
   type WithId,
 } from "@/firebase";
-import { collection, query, where, orderBy, doc } from "firebase/firestore";
+import { collection, query, where, orderBy, doc, getDoc } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import {
   Accordion,
   AccordionContent,
@@ -119,7 +119,7 @@ function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) 
   );
 }
 
-function ReplyForm({ ticketId, onReplied }: { ticketId: string; onReplied: () => void; }) {
+function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>, onReplied: () => void; }) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -136,12 +136,8 @@ function ReplyForm({ ticketId, onReplied }: { ticketId: string; onReplied: () =>
     const onSubmit: SubmitHandler<ReplyFormValues> = async (data) => {
         if (!firestore || !user) return;
 
-        const ticketRef = doc(firestore, "support_tickets", ticketId);
+        const ticketRef = doc(firestore, "support_tickets", ticket.id);
         
-        // This is a bit tricky with non-blocking. We need to get the current replies first.
-        // For simplicity, let's just update the document with the new reply.
-        // A better implementation would use a transaction to read and then update.
-        // For now, this will mostly work.
         const newReply = {
             message: data.reply,
             userId: user.uid,
@@ -150,12 +146,10 @@ function ReplyForm({ ticketId, onReplied }: { ticketId: string; onReplied: () =>
             isStaff: isStaff
         };
         
-        // Not truly non-blocking as it will overwrite concurrent replies
-        const currentDoc = (await (await fetch(ticketRef.path)).json());
-        const currentReplies = currentDoc.replies || [];
+        const updatedReplies = [...ticket.replies, newReply];
         
         updateDocumentNonBlocking(ticketRef, {
-            replies: [...currentReplies, newReply],
+            replies: updatedReplies,
             status: isStaff ? "in-progress" : "open"
         });
 
@@ -225,14 +219,14 @@ function TicketList() {
                                 <div key={index} className={`p-2 rounded-md ${reply.isStaff ? 'bg-blue-100' : 'bg-gray-100'}`}>
                                     <p className="font-bold flex items-center gap-2">
                                         {reply.userEmail.split('@')[0]}
-                                        {reply.isStaff && <Badge variant="secondary" size="sm">Staff</Badge>}
+                                        {reply.isStaff && <Badge variant="secondary">Staff</Badge>}
                                     </p>
                                     <p>{reply.message}</p>
                                     <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</p>
                                 </div>
                             )) : <p>No replies yet.</p>}
                         </div>
-                         <ReplyForm ticketId={ticket.id} onReplied={() => {}} />
+                         <ReplyForm ticket={ticket} onReplied={() => {}} />
                     </div>
                 </AccordionContent>
             </AccordionItem>
