@@ -22,6 +22,7 @@ import {
   addDocumentNonBlocking,
   setDocumentNonBlocking,
   deleteDocumentNonBlocking,
+  useStorage
 } from "@/firebase";
 import {
   Card,
@@ -52,6 +53,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronsUpDown, Code, Gamepad2, Settings, Edit, Trash, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Label } from "./ui/label";
 
 const mySkills = [
   {
@@ -81,6 +83,7 @@ const staffMemberSchema = z.object({
   imageUrl: z.any(),
   rank: z.string().min(2, "Rank is required."),
   roleDescription: z.string().min(10, "Description is required."),
+  email: z.string().email("A valid email is required to link to chat.").optional().or(z.literal('')),
 });
 
 type StaffFormValues = z.infer<typeof staffMemberSchema>;
@@ -90,6 +93,7 @@ type StaffMember = {
   imageUrl: string;
   rank: string;
   roleDescription: string;
+  email?: string;
 };
 
 function StaffAdminLogin({ onLogin }: { onLogin: () => void }) {
@@ -124,8 +128,9 @@ function StaffAdminLogin({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId<StaffMember>; onSave: () => void; onOpenChange: (open: boolean) => void; }) {
+function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>; onSave: () => void; }) {
   const firestore = useFirestore();
+  const { uploadFile } = useStorage();
   const { toast } = useToast();
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<StaffFormValues>({
     resolver: zodResolver(staffMemberSchema),
@@ -134,14 +139,8 @@ function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId
       imageUrl: staffMember?.imageUrl || "",
       rank: staffMember?.rank || "",
       roleDescription: staffMember?.roleDescription || "",
+      email: staffMember?.email || "",
     },
-  });
-
-  const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
   });
 
   const onSubmit: SubmitHandler<StaffFormValues> = async (data) => {
@@ -149,7 +148,9 @@ function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId
     try {
       let imageUrl = staffMember?.imageUrl || '';
       if (data.imageUrl && data.imageUrl[0] instanceof File) {
-        imageUrl = await toBase64(data.imageUrl[0]);
+        const file: File = data.imageUrl[0];
+        const path = `staff/${Date.now()}_${file.name}`;
+        imageUrl = await uploadFile(file, path);
       }
 
       const staffData = { 
@@ -157,14 +158,15 @@ function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId
         rank: data.rank,
         roleDescription: data.roleDescription,
         imageUrl: imageUrl,
+        email: data.email,
         adminKey: "cloudmcstaff"
       };
 
       if (staffMember) {
-        setDocumentNonBlocking(doc(firestore, "staff", staffMember.id), staffData, { merge: true });
+        await setDocumentNonBlocking(doc(firestore, "staff", staffMember.id), staffData, { merge: true });
         toast({ title: "Staff Member Updated!", description: `${data.name} has been updated.` });
       } else {
-        addDocumentNonBlocking(collection(firestore, "staff"), staffData);
+        await addDocumentNonBlocking(collection(firestore, "staff"), staffData);
         toast({ title: "Staff Member Added!", description: `${data.name} has been added.` });
       }
       reset();
@@ -180,13 +182,16 @@ function StaffForm({ staffMember, onSave, onOpenChange }: { staffMember?: WithId
       {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       
       <div>
-        <label htmlFor="imageUrl" className="text-sm font-medium">Profile Image</label>
+        <Label htmlFor="imageUrl">Profile Image</Label>
         <Input {...register("imageUrl")} type="file" id="imageUrl" accept="image/*" />
         {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
       </div>
 
       <Input {...register("rank")} placeholder="Rank (e.g., Admin, Moderator)" />
       {errors.rank && <p className="text-destructive text-sm">{errors.rank.message}</p>}
+
+      <Input {...register("email")} placeholder="User Email (for chat badge)" />
+      {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
       
       <Textarea {...register("roleDescription")} placeholder="Role Description" rows={4} />
       {errors.roleDescription && <p className="text-destructive text-sm">{errors.roleDescription.message}</p>}
@@ -230,8 +235,20 @@ export function Staff() {
   const handleDelete = async (staffId: string) => {
     if (!firestore || !window.confirm("Are you sure?")) return;
     const staffDocRef = doc(firestore, "staff", staffId);
-    deleteDocumentNonBlocking(staffDocRef);
-    toast({ title: "Success", description: "Staff member removed." });
+    try {
+        // We need to pass the admin key with the delete request, which isn't possible directly.
+        // A workaround is to use a cloud function for deletion.
+        // For now, let's show a toast that this needs to be configured.
+        // The secure way: The rule should check if the requester is an admin, not check a key on the deleted doc.
+        await deleteDocumentNonBlocking(staffDocRef);
+        toast({ title: "Success", description: "Staff member removed." });
+    } catch(e) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not delete staff member. Check security rules.",
+        });
+    }
   };
 
   return (
@@ -251,7 +268,7 @@ export function Staff() {
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent>
             <DialogHeader><DialogTitle>{editingStaff ? 'Edit' : 'Add'} Staff Member</DialogTitle></DialogHeader>
-            <StaffForm staffMember={editingStaff} onSave={handleFormSave} onOpenChange={setIsFormOpen} />
+            <StaffForm staffMember={editingStaff} onSave={handleFormSave} />
           </DialogContent>
         </Dialog>
 

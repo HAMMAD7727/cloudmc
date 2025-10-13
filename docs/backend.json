@@ -92,7 +92,8 @@
         "id",
         "name",
         "price",
-        "perks"
+        "perks",
+        "adminKey"
       ]
     },
     "NewsItem": {
@@ -187,6 +188,11 @@
         "adminKey": {
           "type": "string",
           "description": "A secret key to authorize administrative actions."
+        },
+        "email": {
+          "type": "string",
+          "description": "The staff member's email address to link to their chat user.",
+          "format": "email"
         }
       },
       "required": [
@@ -197,20 +203,74 @@
         "adminKey"
       ]
     },
-    "Admin": {
+    "ChatMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Admin",
+      "title": "ChatMessage",
       "type": "object",
-      "description": "Represents an administrator with special privileges.",
+      "description": "A message in the live chat.",
       "properties": {
-        "isAdmin": {
-          "type": "boolean",
-          "description": "Flag indicating administrative privileges."
+        "text": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who sent the message."
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "The email of the user who sent the message."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The timestamp when the message was created.",
+          "format": "date-time"
         }
       },
-      "required": [
-        "isAdmin"
-      ]
+      "required": ["text", "userId", "userEmail", "createdAt"]
+    },
+    "SupportTicket": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SupportTicket",
+      "type": "object",
+      "description": "A support ticket created by a user.",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "userEmail": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "closed", "in-progress"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "replies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "userId": {"type": "string"},
+              "userEmail": {"type": "string"},
+              "message": {"type": "string"},
+              "createdAt": {"type": "string", "format": "date-time"},
+              "isStaff": {"type": "boolean"}
+            },
+            "required": ["userId", "userEmail", "message", "createdAt", "isStaff"]
+          }
+        }
+      },
+      "required": ["userId", "userEmail", "subject", "message", "status", "createdAt"]
     }
   },
   "auth": {
@@ -302,38 +362,22 @@
         }
       },
       {
-        "path": "/admins/{userId}",
+        "path": "/chat_messages/{messageId}",
         "definition": {
-          "entityName": "Admin",
-          "schema": {
-            "$ref": "#/backend/entities/Admin"
-          },
-          "description": "Stores admin user flags. Only admins can write to other users' admin status.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The UID of the user."
-            }
-          ]
+            "entityName": "ChatMessage",
+            "schema": { "$ref": "#/backend/entities/ChatMessage" },
+            "description": "Stores live chat messages. Users must be authenticated to read or write."
         }
       },
       {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "adminRole",
-          "schema": {
-            "$ref": "#/backend/entities/Feedback"
-          },
-          "description": "Marks a user as admin.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "User ID of the admin."
-            }
-          ]
-        }
+          "path": "/support_tickets/{ticketId}",
+          "definition": {
+              "entityName": "SupportTicket",
+              "schema": { "$ref": "#/backend/entities/SupportTicket" },
+              "description": "Stores support tickets. Users can only read/write their own tickets. Staff can read/write all tickets."
+          }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by admin status.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, read access is public, and write access controlled by `adminKey`.\n*   `admins`: Stores flags to identify administrators for role-based access control.\n\nEach collection stores data with homogenous security needs, simplifying the rules. All list operations are safe, as the rules don't rely on filtering data based on user roles or other attributes."
+    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by admin status.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, read access is public, and write access controlled by `adminKey`.\n*   `chat_messages`: Stores live chat messages, accessible only to authenticated users.\n*   `support_tickets`: Manages support requests, with user-specific and staff-level permissions."
   }
 }

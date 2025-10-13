@@ -11,6 +11,7 @@ import { News } from "@/components/news";
 import { HomeContent } from "@/components/home-content";
 import { Feedback } from "@/components/feedback";
 import { Staff } from "@/components/staff";
+import { Community } from "@/components/community";
 
 export default function Home() {
   const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
@@ -54,12 +55,13 @@ export default function Home() {
         <Tabs defaultValue="home" className="w-full">
           <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b z-10">
             <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-7 sm:inline-flex">
+              <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-8 sm:inline-flex">
                 <TabsTrigger value="home" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Home</TabsTrigger>
                 <TabsTrigger value="coins" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Coins</TabsTrigger>
                 <TabsTrigger value="ranks" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Ranks</TabsTrigger>
                 <TabsTrigger value="features" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Features</TabsTrigger>
                 <TabsTrigger value="news" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">News</TabsTrigger>
+                <TabsTrigger value="community" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Community</TabsTrigger>
                 <TabsTrigger value="feedback" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Feedback</TabsTrigger>
                 <TabsTrigger value="staff" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Staff</TabsTrigger>
               </TabsList>
@@ -81,6 +83,9 @@ export default function Home() {
           </TabsContent>
           <TabsContent value="news" className="mt-0">
             <News />
+          </TabsContent>
+          <TabsContent value="community" className="mt-0">
+            <Community />
           </TabsContent>
           <TabsContent value="feedback" className="mt-0">
             <Feedback />
