@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,6 +16,8 @@ type FeedbackEntry = {
   message: string;
   submissionDate: string;
 };
+
+const ADMIN_UIDS = ["P6abiBvo6JXPb27SbI90o7GBPIA2", "6uLUcUb6abZURBBWShZcZKcDdy12"];
 
 function AdminDashboard() {
   const firestore = useFirestore();
@@ -71,65 +74,49 @@ function AdminDashboard() {
 
 
 export default function AdminPage() {
-  const [password, setPassword] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
-  const auth = useAuth();
   const { user } = useUser();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const sessionAuth = sessionStorage.getItem("isAdminAuthenticated");
-    if (sessionAuth === "true" && user) {
+    if (user && ADMIN_UIDS.includes(user.uid)) {
       setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
   }, [user]);
 
-  const handleLogin = () => {
-    if (password === "hammadcloudverse") {
-      initiateAnonymousSignIn(auth);
-      sessionStorage.setItem("isAdminAuthenticated", "true");
-      setIsAuthenticated(true);
-      toast({
-        title: "Success",
-        description: "Logged in to admin panel.",
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Incorrect password.",
-      });
-    }
-  };
-
+  if (!user) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+            <Card className="w-full max-w-md shadow-2xl text-center">
+                 <CardHeader>
+                    <CardTitle className="text-3xl font-bold text-center text-primary font-headline">
+                        Admin Panel
+                    </CardTitle>
+                    <CardDescription className="text-center !text-base">You must be logged in to view this page.</CardDescription>
+                </CardHeader>
+            </Card>
+        </div>
+      )
+  }
+  
   if (isAuthenticated) {
     return <AdminDashboard />;
   }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl">
+      <Card className="w-full max-w-md shadow-2xl text-center">
         <CardHeader>
           <CardTitle className="text-3xl font-bold text-center text-primary font-headline">
-            Admin Panel
+            Access Denied
           </CardTitle>
-           <CardDescription className="text-center !text-base">Enter password to access</CardDescription>
+           <CardDescription className="text-center !text-base">You do not have permission to view the admin panel.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              onKeyUp={(e) => e.key === 'Enter' && handleLogin()}
-            />
-            <Button onClick={handleLogin} className="w-full">
-              Login
-            </Button>
-          </div>
-        </CardContent>
       </Card>
     </div>
   );
 }
+
+    

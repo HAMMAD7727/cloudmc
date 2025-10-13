@@ -198,24 +198,25 @@ function TicketList() {
   const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
   
   const ticketsQuery = useMemoFirebase(() => {
-      if (!firestore || !user) return null;
-      
-      const ticketsCollection = collection(firestore, "support_tickets");
-      
-      // Admins can list all tickets, sorted by date.
-      if (isStaff) {
-        return query(ticketsCollection, orderBy("createdAt", "desc"));
-      }
-      
-      // Regular users must filter by their own userId.
-      return query(
-        ticketsCollection,
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
-    }, [firestore, user, isStaff]);
+    if (!firestore || !user || !isStaff) return null;
+    
+    const ticketsCollection = collection(firestore, "support_tickets");
+    
+    // Admins can list all tickets, sorted by date.
+    return query(ticketsCollection, orderBy("createdAt", "desc"));
+  }, [firestore, user, isStaff]);
 
   const { data: tickets, isLoading } = useCollection<Ticket>(ticketsQuery);
+
+  // If the user is not staff, don't show the ticket list at all.
+  if (!isStaff) {
+    return (
+        <div className="text-center mt-8">
+            <p className="text-muted-foreground">You have successfully created a ticket. An admin will be in touch shortly.</p>
+            <p className="text-muted-foreground text-sm">You do not have permission to view tickets.</p>
+        </div>
+    );
+  }
 
   if (isLoading) return <p>Loading tickets...</p>;
   if (!tickets || tickets.length === 0) return <p className="text-center mt-8">No tickets found.</p>;
@@ -267,22 +268,25 @@ function TicketList() {
 
 export function SupportTickets() {
   const { user } = useUser();
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(true);
+  const [ticketCreated, setTicketCreated] = useState(false);
 
   if (!user) {
     return <p className="text-center">Please log in to create or view support tickets.</p>;
   }
   
+  const handleTicketCreation = () => {
+    setShowCreate(false);
+    setTicketCreated(true);
+  }
+
   return (
     <div>
-      {!showCreate && (
-        <div className="text-center">
-            <Button onClick={() => setShowCreate(true)}>Create New Ticket</Button>
-        </div>
-      )}
-      {showCreate && <CreateTicketForm onTicketCreated={() => setShowCreate(false)} />}
+      {showCreate && <CreateTicketForm onTicketCreated={handleTicketCreation} />}
       
-      <TicketList />
+      {ticketCreated && <TicketList />}
     </div>
   );
 }
+
+    
