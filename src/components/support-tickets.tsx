@@ -198,9 +198,11 @@ function TicketList() {
   
   const ticketsQuery = useMemoFirebase(() => {
       if (!firestore || !user) return null;
+      // Admins can list all tickets, sorted by date
       if (isStaff) {
         return query(collection(firestore, "support_tickets"), orderBy("createdAt", "desc"));
       }
+      // Regular users can only list their own tickets, filtered by userId
       return query(
         collection(firestore, "support_tickets"),
         where("userId", "==", user.uid),
