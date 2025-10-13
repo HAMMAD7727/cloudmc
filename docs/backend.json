@@ -70,6 +70,22 @@
         "adminKey": {
           "type": "string",
           "description": "A secret key to authorize administrative actions."
+        },
+        "textColor": {
+          "type": "string",
+          "description": "The hex color code for the rank name text."
+        },
+        "gradientFrom": {
+          "type": "string",
+          "description": "The starting hex color code for a gradient effect on the rank name."
+        },
+        "gradientTo": {
+          "type": "string",
+          "description": "The ending hex color code for a gradient effect on the rank name."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL for a custom image/icon for the rank."
         }
       },
       "required": [
@@ -111,7 +127,8 @@
         "id",
         "title",
         "content",
-        "date"
+        "date",
+        "adminKey"
       ]
     },
     "Feedback": {
@@ -172,7 +189,13 @@
           "description": "A secret key to authorize administrative actions."
         }
       },
-      "required": ["name", "imageUrl", "rank", "roleDescription"]
+      "required": [
+        "name",
+        "imageUrl",
+        "rank",
+        "roleDescription",
+        "adminKey"
+      ]
     },
     "Admin": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -185,7 +208,9 @@
           "description": "Flag indicating administrative privileges."
         }
       },
-      "required": ["isAdmin"]
+      "required": [
+        "isAdmin"
+      ]
     }
   },
   "auth": {
@@ -260,7 +285,7 @@
           ]
         }
       },
-       {
+      {
         "path": "/staff/{staffId}",
         "definition": {
           "entityName": "StaffMember",
@@ -312,5 +337,3 @@
     "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by admin status.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, read access is public, and write access controlled by `adminKey`.\n*   `admins`: Stores flags to identify administrators for role-based access control.\n\nEach collection stores data with homogenous security needs, simplifying the rules. All list operations are safe, as the rules don't rely on filtering data based on user roles or other attributes."
   }
 }
-
-    

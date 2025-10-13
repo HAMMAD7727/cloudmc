@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,6 +21,7 @@ import {
   addDocumentNonBlocking,
   setDocumentNonBlocking,
   deleteDocumentNonBlocking,
+  useStorage,
 } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -42,17 +44,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Shield, Gem, Star, Crown, Sparkles, Edit, Trash, PlusCircle } from "lucide-react";
+import { Check, Shield, Edit, Trash, PlusCircle, Upload } from "lucide-react";
 import { BuyNowButton } from "./buy-now-button";
 import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 const rankSchema = z.object({
-  name: z.string().min(3, "Rank name is required."),
+  name: z.string().min(1, "Rank name is required."),
   price: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive("Price must be a positive number.")),
   perks: z.string().min(1, "Please add at least one perk."),
   coinBonus: z.string().optional(),
-  icon: z.enum(["Shield", "Gem", "Star", "Crown", "Sparkles"]).default("Shield"),
-  color: z.string().default("text-slate-500"),
+  textColor: z.string().optional(),
+  gradientFrom: z.string().optional(),
+  gradientTo: z.string().optional(),
+  imageUrl: z.any().optional(),
   bestValue: z.boolean().default(false),
 });
 
@@ -63,17 +68,11 @@ type Rank = {
   price: number;
   perks: string[];
   coinBonus?: string;
-  icon: "Shield" | "Gem" | "Star" | "Crown" | "Sparkles";
-  color: string;
+  textColor?: string;
+  gradientFrom?: string;
+  gradientTo?: string;
+  imageUrl?: string;
   bestValue?: boolean;
-};
-
-const icons = {
-  Shield,
-  Gem,
-  Star,
-  Crown,
-  Sparkles,
 };
 
 function AdminLogin({ onLogin }: { onLogin: () => void }) {
@@ -127,11 +126,13 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
 
 function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave: () => void; onOpenChange: (open: boolean) => void; }) {
   const firestore = useFirestore();
+  const { uploadFile } = useStorage();
   const { toast } = useToast();
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RankFormValues>({
     resolver: zodResolver(rankSchema),
@@ -140,8 +141,10 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
       price: rank?.price || 0,
       perks: rank?.perks.join("\n") || "",
       coinBonus: rank?.coinBonus || "",
-      icon: rank?.icon || "Shield",
-      color: rank?.color || "text-slate-500",
+      textColor: rank?.textColor || "#ffffff",
+      gradientFrom: rank?.gradientFrom || "#868f96",
+      gradientTo: rank?.gradientTo || "#596164",
+      imageUrl: rank?.imageUrl || "",
       bestValue: rank?.bestValue || false,
     },
   });
@@ -149,13 +152,28 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
   const onSubmit: SubmitHandler<RankFormValues> = async (data) => {
      if (!firestore) return;
 
-      const rankData = {
-        ...data,
-        perks: data.perks.split('\n').filter(p => p.trim() !== ""),
-        adminKey: "hammadisjassi",
-      };
-
       try {
+        let uploadedImageUrl = rank?.imageUrl || '';
+        // Check if a new file is being uploaded
+        if (data.imageUrl && data.imageUrl[0] instanceof File) {
+          const file: File = data.imageUrl[0];
+          const path = `ranks/${Date.now()}_${file.name}`;
+          uploadedImageUrl = await uploadFile(file, path);
+        }
+
+        const rankData = {
+          name: data.name,
+          price: data.price,
+          perks: data.perks.split('\n').filter(p => p.trim() !== ""),
+          coinBonus: data.coinBonus,
+          textColor: data.textColor,
+          gradientFrom: data.gradientFrom,
+          gradientTo: data.gradientTo,
+          imageUrl: uploadedImageUrl,
+          bestValue: data.bestValue,
+          adminKey: "hammadisjassi",
+        };
+
         if (rank) {
           const rankDocRef = doc(firestore, "ranks", rank.id);
           await setDocumentNonBlocking(rankDocRef, rankData, { merge: true });
@@ -171,6 +189,11 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
          toast({ variant: "destructive", title: "Error", description: "An error occurred." });
       }
   };
+  
+  const watchedTextColor = watch("textColor", rank?.textColor || "#ffffff");
+  const watchedGradientFrom = watch("gradientFrom", rank?.gradientFrom || "#868f96");
+  const watchedGradientTo = watch("gradientTo", rank?.gradientTo || "#596164");
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -180,23 +203,43 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
       <Input {...register("price")} type="number" placeholder="Price" />
       {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
 
-      <Textarea {...register("perks")} placeholder="Perks (one per line)" rows={5} />
+      <Textarea {...register("perks")} placeholder="Perks (one per line)" rows={3} />
       {errors.perks && <p className="text-destructive text-sm">{errors.perks.message}</p>}
       
       <Input {...register("coinBonus")} placeholder="Coin Bonus (e.g., + 1,000 coins)" />
-      
-      <div>
-        <label className="text-sm font-medium">Icon</label>
-        <select {...register("icon")} className="w-full p-2 border rounded-md">
-          {Object.keys(icons).map(iconName => <option key={iconName} value={iconName}>{iconName}</option>)}
-        </select>
-      </div>
 
-      <Input {...register("color")} placeholder="Icon Color (e.g., text-red-500)" />
+       <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="textColor">Text Color</Label>
+          <div className="flex items-center gap-2">
+            <Input id="textColor" type="color" {...register("textColor")} className="p-1 h-10"/>
+            <Input value={watchedTextColor} onChange={e => setValue("textColor", e.target.value)} className="h-10"/>
+          </div>
+        </div>
+        <div className="space-y-2">
+           <Label>Image</Label>
+           <Input id="imageUrl" type="file" {...register("imageUrl")} accept="image/png, image/jpeg" className="text-sm"/>
+           {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Gradient (optional)</Label>
+        <div className="grid grid-cols-2 gap-4">
+           <div className="flex items-center gap-2">
+             <Input type="color" {...register("gradientFrom")} className="p-1 h-10"/>
+             <Input value={watchedGradientFrom} onChange={e => setValue("gradientFrom", e.target.value)} placeholder="From" className="h-10"/>
+           </div>
+           <div className="flex items-center gap-2">
+             <Input type="color" {...register("gradientTo")} className="p-1 h-10"/>
+             <Input value={watchedGradientTo} onChange={e => setValue("gradientTo", e.target.value)} placeholder="To" className="h-10"/>
+           </div>
+        </div>
+      </div>
 
       <div className="flex items-center gap-2">
         <input {...register("bestValue")} type="checkbox" id="bestValue" className="h-4 w-4"/>
-        <label htmlFor="bestValue">Best Value?</label>
+        <Label htmlFor="bestValue" className="text-sm font-medium">Mark as "Best Value"</Label>
       </div>
       
       <DialogFooter>
@@ -248,7 +291,14 @@ export function Ranks() {
   };
 
   const renderRankCard = (rank: WithId<Rank>) => {
-    const RankIcon = icons[rank.icon as keyof typeof icons] || Shield;
+    const titleStyle: React.CSSProperties =
+      rank.gradientFrom && rank.gradientTo
+        ? {
+            color: rank.textColor,
+            backgroundImage: `linear-gradient(to right, ${rank.gradientFrom}, ${rank.gradientTo})`,
+          }
+        : { color: rank.textColor };
+
     return (
       <Card key={rank.id} className={cn("flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl", rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")}>
         {rank.bestValue && (
@@ -265,8 +315,12 @@ export function Ranks() {
           </div>
         )}
         <CardHeader className="items-center text-center">
-          <RankIcon className={cn("w-12 h-12 mb-2", rank.color)} />
-          <CardTitle className="text-2xl font-headline">{rank.name}</CardTitle>
+          {rank.imageUrl ? (
+            <Image src={rank.imageUrl} alt={`${rank.name} icon`} width={48} height={48} className="mb-2"/>
+          ) : (
+            <Shield className="w-12 h-12 mb-2 text-slate-400" />
+          )}
+          <CardTitle className="text-2xl font-headline bg-clip-text text-transparent" style={titleStyle}>{rank.name}</CardTitle>
           <p className="text-3xl font-semibold text-foreground">₹{rank.price}</p>
           {rank.coinBonus && <p className="text-sm font-medium text-green-600">{rank.coinBonus}</p>}
         </CardHeader>
@@ -308,7 +362,7 @@ export function Ranks() {
         )}
         
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>{editingRank ? 'Edit' : 'Add'} Rank</DialogTitle>
             </DialogHeader>
@@ -326,5 +380,3 @@ export function Ranks() {
     </section>
   );
 }
-
-    
