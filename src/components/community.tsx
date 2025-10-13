@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -14,10 +15,21 @@ import { useUser } from "@/firebase";
 
 export function Community() {
   const { user, isUserLoading } = useUser();
+  const [activeTab, setActiveTab] = useState("support");
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash === '#support') {
+      setActiveTab('support');
+    } else if (hash === '#live-chat') {
+      setActiveTab('live-chat');
+    }
+  }, []);
+
 
   if (isUserLoading) {
     return (
-      <div className="w-full py-12 md:py-20 flex justify-center items-center">
+      <div id="community" className="w-full py-12 md:py-20 flex justify-center items-center">
         <p>Loading Community Hub...</p>
       </div>
     );
@@ -36,12 +48,12 @@ export function Community() {
           </CardDescription>
         </div>
 
-        <Tabs defaultValue="support" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="live-chat">Live Chat</TabsTrigger>
-            <TabsTrigger value="support">Support Tickets</TabsTrigger>
+            <TabsTrigger value="live-chat" onClick={() => window.location.hash = 'live-chat'}>Live Chat</TabsTrigger>
+            <TabsTrigger value="support" onClick={() => window.location.hash = 'support'}>Support Tickets</TabsTrigger>
           </TabsList>
-          <TabsContent value="live-chat">
+          <TabsContent value="live-chat" id="live-chat">
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Global Chat</CardTitle>
@@ -54,7 +66,7 @@ export function Community() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="support">
+          <TabsContent value="support" id="support">
              <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Support & Purchases</CardTitle>
