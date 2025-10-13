@@ -73,6 +73,7 @@ type Rank = {
   gradientTo?: string;
   imageUrl?: string;
   bestValue?: boolean;
+  adminKey?: string;
 };
 
 function AdminLogin({ onLogin }: { onLogin: () => void }) {

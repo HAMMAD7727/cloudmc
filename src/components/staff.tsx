@@ -94,6 +94,7 @@ type StaffMember = {
   rank: string;
   roleDescription: string;
   email?: string;
+  adminKey?: string;
 };
 
 function StaffAdminLogin({ onLogin }: { onLogin: () => void }) {
@@ -236,10 +237,6 @@ export function Staff() {
     if (!firestore || !window.confirm("Are you sure?")) return;
     const staffDocRef = doc(firestore, "staff", staffId);
     try {
-        // We need to pass the admin key with the delete request, which isn't possible directly.
-        // A workaround is to use a cloud function for deletion.
-        // For now, let's show a toast that this needs to be configured.
-        // The secure way: The rule should check if the requester is an admin, not check a key on the deleted doc.
         await deleteDocumentNonBlocking(staffDocRef);
         toast({ title: "Success", description: "Staff member removed." });
     } catch(e) {
