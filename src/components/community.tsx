@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -17,6 +18,30 @@ import { useTabStore } from "@/lib/tab-store";
 export function Community() {
   const { user, isUserLoading } = useUser();
   const { communityTab, setCommunityTab } = useTabStore();
+
+  // Sync tab with URL hash
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1); // remove #
+      if (hash === 'support' || hash === 'live-chat') {
+        setCommunityTab(hash);
+      }
+    };
+
+    // Initial check
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [setCommunityTab]);
+
+  const handleTabClick = (value: string) => {
+    setCommunityTab(value);
+    window.location.hash = value;
+  };
+
 
   if (isUserLoading) {
     return (
@@ -41,8 +66,8 @@ export function Community() {
 
         <Tabs value={communityTab} onValueChange={setCommunityTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="live-chat">Live Chat</TabsTrigger>
-            <TabsTrigger value="support">Support Tickets</TabsTrigger>
+            <TabsTrigger value="live-chat" onClick={() => handleTabClick('live-chat')}>Live Chat</TabsTrigger>
+            <TabsTrigger value="support" onClick={() => handleTabClick('support')}>Support Tickets</TabsTrigger>
           </TabsList>
           <TabsContent value="live-chat" id="live-chat">
             <Card className="mt-6">
