@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -198,13 +199,17 @@ function TicketList() {
   
   const ticketsQuery = useMemoFirebase(() => {
       if (!firestore || !user) return null;
-      // Admins can list all tickets, sorted by date
+      
+      const ticketsCollection = collection(firestore, "support_tickets");
+      
+      // Admins can list all tickets, sorted by date.
       if (isStaff) {
-        return query(collection(firestore, "support_tickets"), orderBy("createdAt", "desc"));
+        return query(ticketsCollection, orderBy("createdAt", "desc"));
       }
-      // Regular users can only list their own tickets, filtered by userId
+      
+      // Regular users must filter by their own userId.
       return query(
-        collection(firestore, "support_tickets"),
+        ticketsCollection,
         where("userId", "==", user.uid),
         orderBy("createdAt", "desc")
       );
