@@ -1,3 +1,6 @@
+
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,9 +15,11 @@ import { HomeContent } from "@/components/home-content";
 import { Feedback } from "@/components/feedback";
 import { Staff } from "@/components/staff";
 import { Community } from "@/components/community";
+import { useTabStore } from "@/lib/tab-store";
 
 export default function Home() {
   const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
+  const { mainTab, setMainTab } = useTabStore();
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -52,7 +57,7 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-grow">
-        <Tabs defaultValue="home" className="w-full">
+        <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
           <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b z-10">
             <ScrollArea className="w-full whitespace-nowrap">
               <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-8 sm:inline-flex">

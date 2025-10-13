@@ -1,9 +1,19 @@
+
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Ticket } from "lucide-react";
-import Link from "next/link";
+import { useTabStore } from "@/lib/tab-store";
 
 export function HomeContent() {
+  const { setMainTab, setCommunityTab } = useTabStore();
+
+  const handleCreateTicketClick = () => {
+    setMainTab("community");
+    setCommunityTab("support");
+  };
+
   return (
     <section className="w-full py-12 md:py-20">
       <div className="container mx-auto px-4 md:px-6">
@@ -38,11 +48,9 @@ export function HomeContent() {
               <p className="text-muted-foreground">
                 To buy an item, please create a support ticket. Our staff will contact you to handle the payment and delivery of your items in-game.
               </p>
-              <Button asChild className="w-full">
-                <Link href="/#support">
-                  <Ticket className="mr-2"/>
-                  Create a Purchase Ticket
-                </Link>
+              <Button onClick={handleCreateTicketClick} className="w-full">
+                <Ticket className="mr-2"/>
+                Create a Purchase Ticket
               </Button>
             </CardContent>
           </Card>

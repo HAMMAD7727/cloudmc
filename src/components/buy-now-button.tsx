@@ -1,19 +1,25 @@
+
 "use client";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { useTabStore } from "@/lib/tab-store";
 
 export function BuyNowButton({ className, ...props }: ButtonProps) {
+  const { setMainTab, setCommunityTab } = useTabStore();
+
+  const handleClick = () => {
+    setMainTab("community");
+    setCommunityTab("support");
+  };
+
   return (
     <Button
-      asChild
+      onClick={handleClick}
       className={cn("w-full bg-accent hover:bg-accent/90 text-accent-foreground transition-transform duration-200 hover:scale-105", className)}
       {...props}
     >
-      <Link href="/purchase">
         Buy Now
-      </Link>
     </Button>
   );
 }
