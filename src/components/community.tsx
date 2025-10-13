@@ -36,7 +36,7 @@ export function Community() {
           </CardDescription>
         </div>
 
-        <Tabs defaultValue="live-chat" className="w-full">
+        <Tabs defaultValue="support" className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
             <TabsTrigger value="live-chat">Live Chat</TabsTrigger>
             <TabsTrigger value="support">Support Tickets</TabsTrigger>
@@ -57,9 +57,9 @@ export function Community() {
           <TabsContent value="support">
              <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Support Tickets</CardTitle>
+                <CardTitle>Support & Purchases</CardTitle>
                 <CardDescription>
-                  Need help? Create a ticket and our staff will assist you.
+                  Need help or want to buy an item? Create a ticket and our staff will assist you.
                 </CardDescription>
               </CardHeader>
               <CardContent>

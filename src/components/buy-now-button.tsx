@@ -2,19 +2,18 @@
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export function BuyNowButton({ className, ...props }: ButtonProps) {
-  const handlePurchase = () => {
-    window.open("/purchase", "_blank");
-  };
-
   return (
     <Button
-      onClick={handlePurchase}
+      asChild
       className={cn("w-full bg-accent hover:bg-accent/90 text-accent-foreground transition-transform duration-200 hover:scale-105", className)}
       {...props}
     >
-      Buy Now
+      <Link href="/#community">
+        Buy Now
+      </Link>
     </Button>
   );
 }
