@@ -15,7 +15,7 @@ import { useUser } from "@/firebase";
 
 export function Community() {
   const { user, isUserLoading } = useUser();
-  const [activeTab, setActiveTab] = useState("support");
+  const [activeTab, setActiveTab] = useState("live-chat");
 
   useEffect(() => {
     const hash = window.location.hash;
