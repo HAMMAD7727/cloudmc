@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,7 +20,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { collection, query, orderBy, limit, doc, getDoc, writeBatch } from "firebase/firestore";
+import { collection, query, orderBy, limit, doc, writeBatch } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -55,15 +55,11 @@ type ChatMessage = {
   createdAt: string;
 };
 
-type StaffMember = {
-  email: string;
-  name: string;
-  rank: string;
-};
-
 type UserProfile = {
     displayName: string;
 }
+
+const STAFF_UIDS = ["P6abiBvo6JXPb27SbI90o7GBPIA2", "6uLUcUb6abZURBBWShZcZKcDdy12"];
 
 function UpdateProfileForm() {
   const { user } = useUser();
@@ -80,7 +76,6 @@ function UpdateProfileForm() {
   const onSubmit: SubmitHandler<ProfileFormValues> = async ({ displayName }) => {
     if (!firestore || !user) return;
     
-    // Check if display name is unique
     const profileRef = doc(firestore, "users", user.uid);
 
     try {
@@ -112,7 +107,7 @@ function UpdateProfileForm() {
   )
 }
 
-function ChatMessages({ staffMembers }: { staffMembers: WithId<StaffMember>[] }) {
+function ChatMessages() {
   const firestore = useFirestore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -128,13 +123,8 @@ function ChatMessages({ staffMembers }: { staffMembers: WithId<StaffMember>[] })
     [firestore]
   );
   const { data: messages, isLoading } = useCollection<ChatMessage>(messagesQuery);
-  const reversedMessages = useMemoFirebase(() => messages ? [...messages].reverse() : [], [messages]);
+  const reversedMessages = useMemo(() => messages ? [...messages].reverse() : [], [messages]);
   
-  const getStaffRank = (email: string) => {
-    // This part might need adjustment if we move away from email identity
-    return null;
-  }
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [reversedMessages]);
@@ -145,12 +135,12 @@ function ChatMessages({ staffMembers }: { staffMembers: WithId<StaffMember>[] })
     <div className="h-96 overflow-y-auto p-4 border rounded-md space-y-4 bg-muted/20">
       {reversedMessages && reversedMessages.length > 0 ? (
         reversedMessages.map((msg) => {
-          const staffRank = getStaffRank(msg.userId); // This logic needs to be revisited
+          const isStaff = STAFF_UIDS.includes(msg.userId);
           return (
             <div key={msg.id} className="flex flex-col items-start">
                <div className="flex items-center gap-2">
                 <span className="font-bold">{msg.displayName}</span>
-                {staffRank && <Badge variant="secondary">{staffRank}</Badge>}
+                {isStaff && <Badge variant="secondary">Staff</Badge>}
                </div>
               <p className="bg-white p-2 rounded-lg shadow-sm">{msg.text}</p>
               <span className="text-xs text-muted-foreground mt-1">
@@ -249,9 +239,6 @@ export function LiveChat() {
     resolver: zodResolver(messageSchema),
   });
 
-  const staffQuery = useMemoFirebase(() => firestore ? collection(firestore, "staff") : null, [firestore]);
-  const { data: staffMembers } = useCollection<StaffMember>(staffQuery);
-
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -278,7 +265,7 @@ export function LiveChat() {
     reset();
   };
 
-  if (isUserLoading || isProfileLoading || !staffMembers) return <p>Loading chat...</p>;
+  if (isUserLoading || isProfileLoading) return <p>Loading chat...</p>;
 
   if (!user) {
     return <ChatAuth />;
@@ -294,7 +281,7 @@ export function LiveChat() {
         <p>Logged in as <span className="font-bold">{userProfile.displayName}</span></p>
         <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
       </div>
-      <ChatMessages staffMembers={staffMembers} />
+      <ChatMessages />
       <form onSubmit={handleSubmit(onSubmit)} className="flex gap-2">
         <Input {...register("text")} placeholder="Type your message..." autoComplete="off" />
         <Button type="submit" disabled={isSubmitting}>

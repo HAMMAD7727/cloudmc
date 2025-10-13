@@ -13,7 +13,7 @@ import {
   updateDocumentNonBlocking,
   type WithId,
 } from "@/firebase";
-import { collection, query, where, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, orderBy, doc } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -62,9 +62,7 @@ type Ticket = {
   }[];
 };
 
-type StaffMember = {
-  email: string;
-};
+const STAFF_UIDS = ["P6abiBvo6JXPb27SbI90o7GBPIA2", "6uLUcUb6abZURBBWShZcZKcDdy12"];
 
 function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) {
   const { user } = useUser();
@@ -80,11 +78,14 @@ function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) 
   });
 
   const onSubmit: SubmitHandler<TicketFormValues> = async (data) => {
-    if (!firestore || !user) return;
+    if (!firestore || !user || !user.email) {
+        toast({ variant: "destructive", title: "Error", description: "You must be logged in to create a ticket." });
+        return;
+    };
     const newTicket = {
       ...data,
       userId: user.uid,
-      userEmail: user.email!,
+      userEmail: user.email,
       status: "open" as const,
       createdAt: new Date().toISOString(),
       replies: [],
@@ -126,22 +127,19 @@ function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>, onReplied: (
     const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<ReplyFormValues>({
         resolver: zodResolver(replySchema),
     });
-
-    const staffQuery = useMemoFirebase(() => firestore ? collection(firestore, "staff") : null, [firestore]);
-    const { data: staffMembers } = useCollection<StaffMember>(staffQuery);
     
-    const isStaff = staffMembers?.some(staff => staff.email === user?.email) ?? false;
+    const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
 
 
     const onSubmit: SubmitHandler<ReplyFormValues> = async (data) => {
-        if (!firestore || !user) return;
+        if (!firestore || !user || !user.email) return;
 
         const ticketRef = doc(firestore, "support_tickets", ticket.id);
         
         const newReply = {
             message: data.reply,
             userId: user.uid,
-            userEmail: user.email!,
+            userEmail: user.email,
             createdAt: new Date().toISOString(),
             isStaff: isStaff
         };
@@ -150,13 +148,17 @@ function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>, onReplied: (
         
         updateDocumentNonBlocking(ticketRef, {
             replies: updatedReplies,
-            status: isStaff ? "in-progress" : "open"
+            status: isStaff ? "in-progress" : ticket.status
         });
 
         toast({ title: "Reply Sent" });
         reset();
         onReplied();
     };
+
+    if (ticket.status === 'closed') {
+        return null;
+    }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex gap-2">
@@ -166,14 +168,33 @@ function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>, onReplied: (
     );
 }
 
+function TicketActions({ ticket }: { ticket: WithId<Ticket> }) {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
+
+    const handleStatusChange = (status: "open" | "closed" | "in-progress") => {
+        if (!firestore) return;
+        const ticketRef = doc(firestore, "support_tickets", ticket.id);
+        updateDocumentNonBlocking(ticketRef, { status });
+    };
+
+    if (!isStaff) return null;
+
+    return (
+        <div className="flex gap-2">
+            {ticket.status !== 'closed' && <Button variant="destructive" onClick={() => handleStatusChange('closed')}>Close Ticket</Button>}
+            {ticket.status !== 'open' && <Button variant="outline" onClick={() => handleStatusChange('open')}>Re-open Ticket</Button>}
+        </div>
+    )
+}
+
 
 function TicketList() {
   const { user } = useUser();
   const firestore = useFirestore();
-
-  const staffQuery = useMemoFirebase(() => firestore ? collection(firestore, "staff") : null, [firestore]);
-  const { data: staffMembers } = useCollection<StaffMember>(staffQuery);
-  const isStaff = staffMembers?.some(staff => staff.email === user?.email) ?? false;
+  
+  const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
   
   const ticketsQuery = useMemoFirebase(() => {
       if (!firestore || !user) return null;
@@ -197,36 +218,37 @@ function TicketList() {
         <h3 className="text-xl font-semibold mb-4">{isStaff ? "All Support Tickets" : "Your Tickets"}</h3>
         <Accordion type="single" collapsible className="w-full space-y-4">
         {tickets.map((ticket) => (
-            <AccordionItem value={ticket.id} key={ticket.id} className="border rounded-lg">
+            <AccordionItem value={ticket.id} key={ticket.id} className="border rounded-lg bg-card">
                 <AccordionTrigger className="p-4 hover:no-underline">
                     <div className="flex justify-between items-center w-full">
                         <div className="text-left">
                             <p className="font-bold">{ticket.subject}</p>
                             <p className="text-sm text-muted-foreground">{isStaff ? `From: ${ticket.userEmail}`: ''}</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
                             <Badge variant={ticket.status === 'open' ? 'default' : ticket.status === 'closed' ? 'destructive' : 'secondary'}>{ticket.status}</Badge>
-                            <span className="text-sm text-muted-foreground">{format(new Date(ticket.createdAt), "PPP")}</span>
+                            <span className="text-sm text-muted-foreground hidden md:inline">{format(new Date(ticket.createdAt), "PPP")}</span>
                         </div>
                     </div>
                 </AccordionTrigger>
                 <AccordionContent className="p-4 border-t">
                     <div className="space-y-4">
-                        <p><strong>Original Message:</strong> {ticket.message}</p>
+                        <p><strong className="font-medium">Original Message:</strong> {ticket.message}</p>
                         <div className="space-y-2">
                             <h4 className="font-semibold">Replies:</h4>
                             {ticket.replies.length > 0 ? ticket.replies.map((reply, index) => (
-                                <div key={index} className={`p-2 rounded-md ${reply.isStaff ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                <div key={index} className={`p-3 rounded-md ${reply.isStaff ? 'bg-primary/10' : 'bg-muted/50'}`}>
                                     <p className="font-bold flex items-center gap-2">
                                         {reply.userEmail.split('@')[0]}
                                         {reply.isStaff && <Badge variant="secondary">Staff</Badge>}
                                     </p>
-                                    <p>{reply.message}</p>
+                                    <p className="text-foreground/90">{reply.message}</p>
                                     <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</p>
                                 </div>
-                            )) : <p>No replies yet.</p>}
+                            )) : <p className="text-muted-foreground">No replies yet.</p>}
                         </div>
                          <ReplyForm ticket={ticket} onReplied={() => {}} />
+                         <TicketActions ticket={ticket} />
                     </div>
                 </AccordionContent>
             </AccordionItem>
