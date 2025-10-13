@@ -133,6 +133,7 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RankFormValues>({
     resolver: zodResolver(rankSchema),
@@ -203,7 +204,7 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
       <Input {...register("price")} type="number" placeholder="Price" />
       {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
 
-      <Textarea {...register("perks")} placeholder="Perks (one per line)" rows={3} />
+      <Textarea {...register("perks")} placeholder="Perks (one per line, emojis supported ✨)" rows={4} />
       {errors.perks && <p className="text-destructive text-sm">{errors.perks.message}</p>}
       
       <Input {...register("coinBonus")} placeholder="Coin Bonus (e.g., + 1,000 coins)" />
@@ -294,8 +295,10 @@ export function Ranks() {
     const titleStyle: React.CSSProperties =
       rank.gradientFrom && rank.gradientTo
         ? {
-            color: rank.textColor,
-            backgroundImage: `linear-gradient(to right, ${rank.gradientFrom}, ${rank.gradientTo})`,
+            color: 'transparent',
+            background: `linear-gradient(to right, ${rank.gradientFrom}, ${rank.gradientTo})`,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
           }
         : { color: rank.textColor };
 
@@ -320,14 +323,14 @@ export function Ranks() {
           ) : (
             <Shield className="w-12 h-12 mb-2 text-slate-400" />
           )}
-          <CardTitle className="text-2xl font-headline bg-clip-text text-transparent" style={titleStyle}>{rank.name}</CardTitle>
+          <CardTitle className="text-2xl font-headline" style={titleStyle}>{rank.name}</CardTitle>
           <p className="text-3xl font-semibold text-foreground">₹{rank.price}</p>
           {rank.coinBonus && <p className="text-sm font-medium text-green-600">{rank.coinBonus}</p>}
         </CardHeader>
         <CardContent className="flex-grow">
           <ul className="space-y-3">
-            {rank.perks.map((perk) => (
-              <li key={perk} className="flex items-start">
+            {rank.perks.map((perk, index) => (
+              <li key={index} className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-green-500 flex-shrink-0 mt-1" />
                 <span className="text-muted-foreground">{perk}</span>
               </li>
