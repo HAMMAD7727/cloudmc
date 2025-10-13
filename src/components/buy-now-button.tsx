@@ -11,7 +11,7 @@ export function BuyNowButton({ className, ...props }: ButtonProps) {
       className={cn("w-full bg-accent hover:bg-accent/90 text-accent-foreground transition-transform duration-200 hover:scale-105", className)}
       {...props}
     >
-      <Link href="/#support">
+      <Link href="/purchase">
         Buy Now
       </Link>
     </Button>
