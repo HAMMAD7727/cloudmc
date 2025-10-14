@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,14 +17,30 @@ import { Feedback } from "@/components/feedback";
 import { Staff } from "@/components/staff";
 import { Community } from "@/components/community";
 import { useTabStore } from "@/lib/tab-store";
+import { useToast } from "@/hooks/use-toast";
+import { Copy, Check } from "lucide-react";
 
 export default function Home() {
   const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
   const { mainTab, setMainTab } = useTabStore();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const serverIp = "play.cloudverse.fun";
+
+  const copyIp = () => {
+    navigator.clipboard.writeText(serverIp);
+    setCopied(true);
+    toast({
+      title: "Copied to clipboard!",
+      description: `IP: ${serverIp}`,
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="relative w-full h-64 md:h-80">
+      <header className="relative w-full h-80 md:h-96">
         {bannerImage && (
           <Image
             src={bannerImage.imageUrl}
@@ -35,18 +52,28 @@ export default function Home() {
           />
         )}
         <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center p-4">
-          <div className="bg-black/20 backdrop-blur-md p-6 rounded-xl">
+          <div className="bg-black/20 backdrop-blur-md p-6 rounded-xl space-y-4">
             {bannerImage &&
-              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-full mb-4 transition-transform duration-300 hover:scale-110">
+              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-full mb-2 transition-transform duration-300 hover:scale-110 w-fit mx-auto">
                 <Image src={bannerImage.imageUrl} alt="Cloudverse Logo" width={80} height={80} className="rounded-full" data-ai-hint={bannerImage.imageHint}/>
               </div>
             }
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white font-headline drop-shadow-lg">
               Cloudverse Store
             </h1>
-            <p className="mt-2 text-md md:text-lg text-white/90 drop-shadow-md max-w-xs sm:max-w-none">
+            <p className="text-md md:text-lg text-white/90 drop-shadow-md max-w-xs sm:max-w-none">
               Your one-stop shop for ranks, coins, and more!
             </p>
+
+            <div className="flex justify-center pt-2">
+              <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm p-2 px-4 rounded-full border border-white/10 shadow-lg">
+                <span className="text-white/80 font-mono text-sm md:text-base">{serverIp}</span>
+                <Button variant="ghost" size="icon" onClick={copyIp} className="h-8 w-8 rounded-full text-white/80 hover:bg-white/20 hover:text-white">
+                  {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+                </Button>
+              </div>
+            </div>
+
           </div>
           <Button asChild className="mt-6 bg-primary hover:bg-primary/90 text-primary-foreground group transition-transform duration-300 hover:scale-105" size="lg">
             <Link href="https://discord.gg/UNaPb7SYyf" target="_blank">
@@ -114,3 +141,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
