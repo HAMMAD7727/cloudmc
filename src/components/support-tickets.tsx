@@ -27,6 +27,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -153,6 +154,68 @@ function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) 
   );
 }
 
+
+// -------------------------------------------------------------
+// 💬 Reply Form
+// -------------------------------------------------------------
+function ReplyForm({ ticket, onReplySent }: { ticket: WithId<Ticket>; onReplySent: () => void }) {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ReplyFormValues>({
+    resolver: zodResolver(replySchema),
+  });
+
+  const onSubmit: SubmitHandler<ReplyFormValues> = async (data) => {
+    if (!firestore || !user || !user.email) return;
+
+    const messageRef = collection(firestore, "support_tickets", ticket.id, "messages");
+    const newMessage = {
+      message: data.reply,
+      userId: user.uid,
+      userEmail: user.email,
+      createdAt: new Date().toISOString(),
+      isStaff: STAFF_UIDS.includes(user.uid),
+    };
+
+    try {
+      await addDocumentNonBlocking(messageRef, newMessage);
+      toast({ title: "Reply Sent" });
+      reset();
+      onReplySent();
+    } catch (error) {
+      console.error("Error sending reply:", error);
+      toast({ variant: "destructive", title: "Error", description: "Could not send reply." });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-2">
+      <Textarea {...register("reply")} placeholder="Type your reply..." rows={3} />
+      {errors.reply && <p className="text-destructive text-sm">{errors.reply.message}</p>}
+      <div className="flex justify-end gap-2">
+         {ticket.status !== 'closed' && (
+             <Button
+                type="button"
+                variant="outline"
+                onClick={async () => {
+                    if(!firestore) return;
+                    await updateDocumentNonBlocking(doc(firestore, "support_tickets", ticket.id), { status: "closed" })
+                    toast({ title: "Ticket Closed"})
+                }}
+             >
+                Close Ticket
+            </Button>
+         )}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Sending..." : "Send Reply"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+
 // -------------------------------------------------------------
 // 💬 Ticket Messages
 // -------------------------------------------------------------
@@ -171,24 +234,26 @@ function TicketMessages({ ticketId }: { ticketId: string }) {
   if (error) return <p className="text-destructive">Error loading messages.</p>;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 pt-4">
       <h4 className="font-semibold">Messages:</h4>
-      {messages && messages.length > 0 ? (
-        messages.map((reply) => (
-          <div key={reply.id} className={`p-3 rounded-md ${reply.isStaff ? "bg-primary/10" : "bg-muted/50"}`}>
-            <p className="font-bold flex items-center gap-2">
-              {reply.userEmail.split("@")[0]}
-              {reply.isStaff && <Badge variant="secondary">Staff</Badge>}
-            </p>
-            <p className="text-foreground/90">{reply.message}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}
-            </p>
-          </div>
-        ))
-      ) : (
-        <p className="text-muted-foreground">No messages yet.</p>
-      )}
+      <div className="space-y-4 max-h-96 overflow-y-auto pr-4">
+        {messages && messages.length > 0 ? (
+            messages.map((reply) => (
+            <div key={reply.id} className={`p-3 rounded-lg ${reply.isStaff ? "bg-primary/10 border border-primary/20" : "bg-muted/50"}`}>
+                <p className="font-bold flex items-center gap-2">
+                {reply.userEmail.split("@")[0]}
+                {reply.isStaff && <Badge variant="secondary">Staff</Badge>}
+                </p>
+                <p className="text-foreground/90 whitespace-pre-wrap">{reply.message}</p>
+                <p className="text-xs text-muted-foreground mt-1 text-right">
+                {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}
+                </p>
+            </div>
+            ))
+        ) : (
+            <p className="text-muted-foreground">No messages yet.</p>
+        )}
+       </div>
     </div>
   );
 }
@@ -227,7 +292,7 @@ function TicketList() {
     return <p className="text-destructive text-center mt-8">Error loading tickets. You may not have permission to view them.</p>;
   }
   if (!tickets || tickets.length === 0)
-    return <p className="text-center mt-8">No tickets found.</p>;
+    return <p className="text-center text-muted-foreground mt-8">No tickets found.</p>;
 
   return (
     <div className="mt-8">
@@ -236,18 +301,18 @@ function TicketList() {
       </h3>
       <Accordion type="single" collapsible className="w-full space-y-4">
         {tickets.map((ticket) => (
-          <AccordionItem value={ticket.id} key={ticket.id} className="border rounded-lg bg-card">
+          <AccordionItem value={ticket.id} key={ticket.id} className="border rounded-lg bg-card shadow-sm hover:shadow-md transition-shadow">
             <AccordionTrigger className="p-4 hover:no-underline">
-              <div className="flex justify-between items-center w-full">
+              <div className="flex justify-between items-center w-full gap-4">
                 <div className="text-left">
-                  <p className="font-bold">{ticket.subject}</p>
+                  <p className="font-bold truncate">{ticket.subject}</p>
                   {isStaff && (
                     <p className="text-sm text-muted-foreground">
                       From: {ticket.userEmail}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-shrink-0">
                   <Badge
                     variant={
                       ticket.status === "open"
@@ -256,6 +321,7 @@ function TicketList() {
                         ? "destructive"
                         : "secondary"
                     }
+                    className="capitalize"
                   >
                     {ticket.status}
                   </Badge>
@@ -267,6 +333,7 @@ function TicketList() {
             </AccordionTrigger>
             <AccordionContent className="p-4 border-t">
               <TicketMessages ticketId={ticket.id} />
+               <ReplyForm ticket={ticket} onReplySent={() => {}} />
             </AccordionContent>
           </AccordionItem>
         ))}
@@ -280,14 +347,29 @@ function TicketList() {
 // -------------------------------------------------------------
 export function SupportTickets() {
   const { user } = useUser();
+  const [showCreate, setShowCreate] = useState(false);
 
   if (!user) {
-    return <p className="text-center">Please log in to create or view support tickets.</p>;
+    return <p className="text-center text-muted-foreground">Please log in to create or view support tickets.</p>;
   }
 
   return (
-    <div>
-      <CreateTicketForm onTicketCreated={() => {}} />
+    <div className="space-y-6">
+        {!showCreate && (
+             <Card className="text-center p-6 bg-primary/5 border-dashed">
+                <CardHeader>
+                    <CardTitle>Need Assistance?</CardTitle>
+                    <CardDescription>
+                        Create a new support ticket and our staff will get back to you shortly.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={() => setShowCreate(true)}>Create New Ticket</Button>
+                </CardContent>
+            </Card>
+        )}
+      
+       {showCreate && <CreateTicketForm onTicketCreated={() => setShowCreate(false)} />}
       <TicketList />
     </div>
   );
