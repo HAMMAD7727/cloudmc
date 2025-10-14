@@ -16,6 +16,7 @@ import { Feedback } from "@/components/feedback";
 import { Staff } from "@/components/staff";
 import { Community } from "@/components/community";
 import { useTabStore } from "@/lib/tab-store";
+import { TermsDialog } from "@/components/terms-dialog";
 
 export default function Home() {
   const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
@@ -104,9 +105,12 @@ export default function Home() {
         <div className="container mx-auto py-6 text-center text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} Cloudverse. All rights reserved.</p>
           <p className="text-sm">This is a fan-made store and not affiliated with Mojang AB.</p>
-          <Button variant="link" asChild className="text-xs text-muted-foreground/50">
-            <Link href="/admin">Admin Panel</Link>
-          </Button>
+          <div className="flex justify-center items-center gap-4 mt-2">
+            <Button variant="link" asChild className="text-xs text-muted-foreground/50">
+              <Link href="/admin">Admin Panel</Link>
+            </Button>
+            <TermsDialog />
+          </div>
         </div>
       </footer>
     </div>
