@@ -103,10 +103,6 @@
       "type": "object",
       "description": "Represents a news item displayed on the Cloudverse store.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the news item."
-        },
         "title": {
           "type": "string",
           "description": "Title of the news item."
@@ -123,14 +119,22 @@
         "adminKey": {
           "type": "string",
           "description": "A secret key to authorize administrative actions."
+        },
+        "emoji": {
+          "type": "string",
+          "description": "An emoji to display with the news item."
+        },
+        "color": {
+          "type": "string",
+          "description": "An optional highlight color for the news item card."
         }
       },
       "required": [
-        "id",
         "title",
         "content",
         "date",
-        "adminKey"
+        "adminKey",
+        "emoji"
       ]
     },
     "Feedback": {
