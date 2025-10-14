@@ -3,15 +3,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, Ticket } from "lucide-react";
-import { useTabStore } from "@/lib/tab-store";
+import { ShoppingCart, MessageSquare, Users } from "lucide-react";
+import Link from "next/link";
+
 
 export function HomeContent() {
-  const { setMainTab } = useTabStore();
-
-  const handleHowToPurchaseClick = () => {
-    setMainTab("community");
-  };
 
   return (
     <section className="w-full py-12 md:py-20">
@@ -47,9 +43,11 @@ export function HomeContent() {
               <p className="text-muted-foreground">
                 To buy an item, please join our Discord server and create a ticket. Our staff will contact you to handle the payment and delivery of your items in-game.
               </p>
-              <Button onClick={handleHowToPurchaseClick} className="w-full">
-                <Ticket className="mr-2"/>
-                Join our Community
+              <Button asChild className="w-full">
+                <Link href="https://discord.gg/UNaPb7SYyf" target="_blank">
+                  <Users className="mr-2"/>
+                  Join our Community
+                </Link>
               </Button>
             </CardContent>
           </Card>
