@@ -158,11 +158,11 @@ function NewsForm({ newsItem, onSave }: { newsItem?: WithId<NewsItem>; onSave: (
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="color">Highlight Color (optional)</Label>
-                    <Input id="color" {...register("color")} type="color" className="p-1"/>
+                    <Input id="color" {...register("color")} type="color" className="p-1 h-10"/>
                 </div>
             </div>
 
-            <DialogFooter className="sticky bottom-0 bg-background pt-4">
+            <DialogFooter className="sticky bottom-0 bg-background/80 backdrop-blur-sm pt-4">
                 <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : "Save News"}
@@ -215,13 +215,13 @@ export function News() {
 
 
   return (
-    <section id="news" className="w-full py-12 md:py-20 relative">
+    <section id="news" className="w-full py-16 md:py-24 relative">
       {!isAuthenticated && <AdminLogin onLogin={handleLogin} />}
 
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center space-y-4 mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-headline">Latest News</h2>
-          <CardDescription className="max-w-2xl mx-auto !text-base">
+        <div className="text-center space-y-4 mb-12">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight font-headline animate-slide-in">Latest News</h2>
+          <CardDescription className="max-w-2xl mx-auto !text-lg">
             Stay up-to-date with the latest changes and events.
           </CardDescription>
         </div>
@@ -247,7 +247,7 @@ export function News() {
           {isLoading && <p className="text-center">Loading news...</p>}
           {!isLoading && newsItems?.length === 0 && <p className="text-center text-muted-foreground">No news has been posted yet.</p>}
           {newsItems?.map((item) => (
-            <Card key={item.id} className="w-full shadow-md transform hover:-translate-y-2 transition-transform duration-300 hover:shadow-primary/20 hover:shadow-2xl relative" style={{ borderColor: item.color || 'hsl(var(--border))' }}>
+            <Card key={item.id} className="w-full transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 relative" style={{ borderColor: item.color || 'hsl(var(--border))', borderLeftWidth: 4 }}>
                {isAuthenticated && (
                 <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1">
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenForm(item)}>
@@ -264,7 +264,7 @@ export function News() {
                     {item.emoji}
                   </div>
                   <div className="flex-1">
-                    <CardTitle className="text-xl font-headline">{item.title}</CardTitle>
+                    <CardTitle className="text-xl font-bold">{item.title}</CardTitle>
                     <CardDescription>{new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
                   </div>
                 </div>

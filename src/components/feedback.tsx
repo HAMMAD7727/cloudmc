@@ -55,7 +55,7 @@ function FeedbackList() {
   return (
      <div className="space-y-4">
         {feedback.map((item: WithId<FeedbackEntry>) => (
-          <Card key={item.id} className="transform hover:-translate-y-1 transition-transform duration-200 hover:shadow-lg">
+          <Card key={item.id} className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -68,9 +68,9 @@ function FeedbackList() {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${
-                        i < item.rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"
-                      }`}
+                      className={cn("w-5 h-5",
+                        i < item.rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/50"
+                      )}
                     />
                   ))}
                 </div>
@@ -131,15 +131,15 @@ export function Feedback() {
   };
 
   return (
-    <section id="feedback" className="w-full py-12 md:py-20 bg-primary/5">
+    <section id="feedback" className="w-full py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-            <Card className="w-full shadow-lg transform hover:-translate-y-2 transition-transform duration-300 hover:shadow-primary/20 hover:shadow-2xl self-start">
+        <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
+            <Card className="w-full transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 self-start">
               <CardHeader>
-                <CardTitle className="text-3xl font-bold tracking-tight font-headline text-center">
+                <CardTitle className="text-3xl font-black tracking-tight font-headline text-center animate-slide-in">
                   Share Your Feedback
                 </CardTitle>
-                <CardDescription className="text-center !text-base">
+                <CardDescription className="text-center !text-lg">
                   We value your opinion. Let us know how we're doing!
                 </CardDescription>
               </CardHeader>
@@ -149,7 +149,6 @@ export function Feedback() {
                     <Input
                       {...register("playerName")}
                       placeholder="Enter your player name"
-                      className="bg-background"
                     />
                     {errors.playerName && (
                       <p className="text-sm text-destructive">
@@ -165,10 +164,10 @@ export function Feedback() {
                         <Star
                           key={star}
                           className={cn(
-                            "w-8 h-8 cursor-pointer transition-colors duration-200 hover:scale-110",
+                            "w-8 h-8 cursor-pointer transition-all duration-200 hover:scale-125",
                             (hoverRating >= star || rating >= star)
                               ? "text-yellow-400 fill-yellow-400"
-                              : "text-muted-foreground"
+                              : "text-muted-foreground/50"
                           )}
                           onMouseEnter={() => setHoverRating(star)}
                           onMouseLeave={() => setHoverRating(0)}
@@ -191,7 +190,6 @@ export function Feedback() {
                       {...register("message")}
                       placeholder="Tell us what you think..."
                       rows={5}
-                      className="bg-background"
                     />
                     {errors.message && (
                       <p className="text-sm text-destructive">
@@ -210,10 +208,10 @@ export function Feedback() {
                 </form>
               </CardContent>
             </Card>
-            <div className="space-y-6">
+            <div className="space-y-8">
                 <div className="text-center space-y-2">
-                    <h3 className="text-3xl font-bold tracking-tight font-headline">Community Feedback</h3>
-                    <p className="text-muted-foreground">See what other players are saying.</p>
+                    <h3 className="text-3xl font-black tracking-tight font-headline animate-slide-in">Community Feedback</h3>
+                    <p className="text-muted-foreground text-lg">See what other players are saying.</p>
                 </div>
                 <FeedbackList />
             </div>

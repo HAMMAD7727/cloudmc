@@ -12,31 +12,31 @@ const coinPacks = [
 
 export function CoinPacks() {
   return (
-    <section id="coins" className="w-full py-12 md:py-20 bg-primary/5">
+    <section id="coins" className="w-full py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center space-y-4 mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-headline">Buy Coins</h2>
+        <div className="text-center space-y-4 mb-12">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight font-headline animate-slide-in">Buy Coins</h2>
           <p className="text-muted-foreground text-lg">100 Coins = ₹10</p>
-          <CardDescription className="max-w-2xl mx-auto !text-base">
+          <CardDescription className="max-w-2xl mx-auto !text-lg">
             Purchase coins to unlock special items and perks in the game!
           </CardDescription>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {coinPacks.map((pack) => (
-            <Card key={pack.name} className="flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {coinPacks.map((pack, index) => (
+            <Card key={pack.name} className="flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 animate-slide-in" style={{animationDelay: `${index * 100}ms`}}>
               {pack.popular && (
-                <Badge className="absolute -top-3 right-3 bg-primary text-primary-foreground">MOST POPULAR</Badge>
+                <Badge className="absolute -top-3 right-3 bg-primary text-primary-foreground border-2 border-background">MOST POPULAR</Badge>
               )}
               <CardHeader className="items-center text-center">
-                <CardTitle className="text-2xl font-headline">{pack.name}</CardTitle>
+                <CardTitle className="text-2xl font-bold">{pack.name}</CardTitle>
               </CardHeader>
               <CardContent className="flex-grow text-center space-y-4">
-                <div className="flex items-center justify-center gap-2 text-yellow-500">
+                <div className="flex items-center justify-center gap-2 text-yellow-400">
                   <Coins className="w-10 h-10" />
-                  <p className="text-5xl font-bold">{pack.coins}</p>
+                  <p className="text-6xl font-bold">{pack.coins}</p>
                 </div>
-                <p className="text-3xl font-semibold text-foreground">₹{pack.price}</p>
-                <CardDescription>{pack.description}</CardDescription>
+                <p className="text-4xl font-bold text-foreground">₹{pack.price}</p>
+                <CardDescription className="text-base">{pack.description}</CardDescription>
               </CardContent>
               <CardFooter>
                 <BuyNowButton />

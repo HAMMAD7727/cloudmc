@@ -211,7 +211,7 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
                 {errors.roleDescription && <p className="text-destructive text-sm">{errors.roleDescription.message}</p>}
             </div>
             
-            <DialogFooter className="sticky bottom-0 bg-background pt-4">
+            <DialogFooter className="sticky bottom-0 bg-background/80 backdrop-blur-sm pt-4">
                 <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
                 <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Staff Member"}</Button>
             </DialogFooter>
@@ -265,9 +265,9 @@ export function Staff() {
   };
   
   const rankStyles: { [key: string]: string } = {
-    'developer': 'bg-accent/80 text-accent-foreground',
-    'founder': 'bg-yellow-500/80 text-yellow-950 border border-yellow-600/50',
-    'admin': 'bg-red-500/80 text-red-950',
+    'developer': 'bg-blue-500/20 text-blue-300 border-blue-400/30',
+    'founder': 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30',
+    'admin': 'bg-red-500/20 text-red-300 border-red-400/30',
     'default': 'bg-secondary text-secondary-foreground'
   };
   
@@ -278,12 +278,12 @@ export function Staff() {
 
 
   return (
-    <section id="staff" className="w-full py-12 md:py-20 bg-primary/5 relative">
+    <section id="staff" className="w-full py-16 md:py-24 relative">
       {!isAuthenticated && <StaffAdminLogin onLogin={handleLogin} />}
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center space-y-4 mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-headline">Our Staff</h2>
-           <CardDescription className="max-w-2xl mx-auto !text-base">
+        <div className="text-center space-y-4 mb-12">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight font-headline animate-slide-in">Our Staff</h2>
+           <CardDescription className="max-w-2xl mx-auto !text-lg">
             Meet the dedicated team that keeps Cloudverse running.
           </CardDescription>
         </div>
@@ -306,11 +306,11 @@ export function Staff() {
 
         <div className="space-y-12">
           {/* Hammad's Static Profile */}
-          <Card className="w-full max-w-2xl mx-auto transform hover:-translate-y-2 transition-transform duration-300 shadow-lg hover:shadow-primary/20 hover:shadow-2xl border-2 border-accent">
+          <Card className="w-full max-w-3xl mx-auto transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent/20 border-2 border-accent">
             <CardHeader className="text-center items-center p-8">
-              <Image src="https://hammadprofile.netlify.app/imagie/hammad.webp" alt="Hammad's Profile Picture" width={100} height={100} className="rounded-full mb-4 border-4 border-accent/30 shadow-lg"/>
-              <CardTitle className="text-3xl font-headline">Hammad</CardTitle>
-              <Badge className={cn("text-sm font-bold uppercase tracking-wider", getRankStyle('developer'))}>
+              <Image src="https://hammadprofile.netlify.app/imagie/hammad.webp" alt="Hammad's Profile Picture" width={120} height={120} className="rounded-full mb-4 border-4 border-accent/30 shadow-lg"/>
+              <CardTitle className="text-4xl font-black">Hammad</CardTitle>
+              <Badge className={cn("text-sm font-bold uppercase tracking-wider border", getRankStyle('developer'))}>
                 Developer
               </Badge>
             </CardHeader>
@@ -318,7 +318,7 @@ export function Staff() {
               <Collapsible className="w-full">
                 <div className="flex items-center justify-center"><CollapsibleTrigger asChild><Button variant="outline" className="mb-4">View Skills <ChevronsUpDown className="w-4 h-4 ml-2" /></Button></CollapsibleTrigger></div>
                 <CollapsibleContent>
-                  <div className="space-y-6 rounded-lg border p-6 bg-background">
+                  <div className="space-y-6 rounded-lg border p-6 bg-background/50">
                     {mySkills.map((skill) => {
                       const Icon = skill.icon;
                       return (
@@ -342,9 +342,9 @@ export function Staff() {
           {isLoading ? (
             <p className="text-center">Loading staff...</p>
           ) : staff && staff.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-              {staff.map((member) => (
-                <Card key={member.id} className="flex flex-col text-center items-center transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl relative group">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 pt-12">
+              {staff.map((member, index) => (
+                <Card key={member.id} className="flex flex-col text-center items-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 relative group animate-slide-in" style={{animationDelay: `${index * 100}ms`}}>
                    {isAuthenticated && (
                     <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenForm(member)}><Edit className="h-4 w-4" /></Button>
@@ -355,9 +355,9 @@ export function Staff() {
                     {member.imageUrl && (
                       <Image src={member.imageUrl} alt={`${member.name}'s profile picture`} width={80} height={80} className="rounded-full border-4 border-primary/10 shadow-md mx-auto"/>
                     )}
-                    <CardTitle className="text-2xl font-headline mt-4">{member.name}</CardTitle>
-                    <Badge className={cn("text-xs font-bold uppercase tracking-wider mx-auto", getRankStyle(member.rank))}>
-                      {member.rank === 'founder' && <Crown className="w-3 h-3 mr-1.5"/>}
+                    <CardTitle className="text-2xl font-bold mt-4">{member.name}</CardTitle>
+                    <Badge className={cn("text-xs font-bold uppercase tracking-wider mx-auto border", getRankStyle(member.rank))}>
+                      {member.rank.toLowerCase() === 'founder' && <Crown className="w-3 h-3 mr-1.5"/>}
                       {member.rank}
                     </Badge>
                   </CardHeader>
@@ -368,7 +368,7 @@ export function Staff() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground col-span-full">No other staff members have been added yet.</p>
+            <p className="text-center text-muted-foreground col-span-full pt-12">No other staff members have been added yet.</p>
           )}
         </div>
       </div>

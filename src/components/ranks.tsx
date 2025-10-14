@@ -21,7 +21,6 @@ import {
   type WithId,
   addDocumentNonBlocking,
   setDocumentNonBlocking,
-  deleteDocumentNonBlocking,
   useStorage,
 } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
@@ -53,11 +52,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Shield, Edit, Trash, PlusCircle, Upload, Palette } from "lucide-react";
+import { Check, Shield, Edit, Trash, PlusCircle, Palette } from "lucide-react";
 import { BuyNowButton } from "./buy-now-button";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "./ui/checkbox";
+import { deleteRank } from "@/ai/flows/delete-rank-flow";
 
 const rankSchema = z.object({
   name: z.string().min(1, "Rank name is required."),
@@ -131,7 +131,6 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const auth = useAuth();
-  const firestore = useFirestore();
 
   const handleLogin = async () => {
     if (password === "hammadisjassi") {
@@ -186,7 +185,6 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
     reset,
     watch,
     setValue,
-    control,
     formState: { errors, isSubmitting },
   } = useForm<RankFormValues>({
     resolver: zodResolver(rankSchema),
@@ -293,7 +291,7 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
                             <Label htmlFor="gradientFrom" className="text-sm font-normal text-muted-foreground">From</Label>
                             <ColorSelect value={watch('gradientFrom')} onChange={(color) => handleColorChange('gradientFrom', color)} />
                         </div>
-                        <div className="spacey-y-2">
+                        <div className="space-y-2">
                             <Label htmlFor="gradientTo" className="text-sm font-normal text-muted-foreground">To</Label>
                             <ColorSelect value={watch('gradientTo')} onChange={(color) => handleColorChange('gradientTo', color)} />
                         </div>
@@ -309,7 +307,7 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
             </Label>
         </div>
 
-        <DialogFooter className="sticky bottom-0 bg-background pt-4">
+        <DialogFooter className="sticky bottom-0 bg-background/80 backdrop-blur-sm pt-4">
             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
             <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Saving..." : "Save Rank"}
@@ -353,30 +351,39 @@ export function Ranks() {
   };
 
   const handleDelete = async (rankId: string) => {
-    if (!firestore || !window.confirm("Are you sure you want to delete this rank?")) return;
-    const rankDocRef = doc(firestore, "ranks", rankId);
-    await deleteDocumentNonBlocking(rankDocRef);
-    toast({ title: "Success", description: "Rank deleted successfully." });
+    const adminKey = window.prompt("Please enter the admin key to delete this rank:");
+    if (!adminKey) {
+        toast({ variant: "destructive", title: "Canceled", description: "Deletion canceled." });
+        return;
+    }
+
+    try {
+        await deleteRank({ rankId, adminKey });
+        toast({ title: "Success", description: "Rank deleted successfully." });
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: error.message || "Could not delete rank.",
+        });
+    }
   };
 
-  const renderRankCard = (rank: WithId<Rank>) => {
+  const renderRankCard = (rank: WithId<Rank>, index: number) => {
     const titleStyle: React.CSSProperties =
       rank.gradientFrom && rank.gradientTo
         ? {
-            color: 'transparent',
-            background: `linear-gradient(to right, ${rank.gradientFrom}, ${rank.gradientTo})`,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
+            backgroundImage: `linear-gradient(to right, ${rank.gradientFrom}, ${rank.gradientTo})`,
           }
         : { color: rank.textColor || '#FFFFFF' };
 
     return (
-      <Card key={rank.id} className={cn("flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl", rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")}>
+      <Card key={rank.id} className={cn("flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 animate-slide-in", rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")} style={{animationDelay: `${index * 100}ms`}}>
         {rank.bestValue && (
-          <Badge className="absolute -top-3 right-3 bg-accent text-accent-foreground hover:bg-accent/90" >BEST VALUE</Badge>
+          <Badge className="absolute -top-3 right-3 bg-accent text-accent-foreground hover:bg-accent/90 border-2 border-background" >BEST VALUE</Badge>
         )}
         {isAuthenticated && (
-          <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md">
+          <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1">
             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleOpenForm(rank)}>
               <Edit className="h-4 w-4" />
             </Button>
@@ -389,11 +396,11 @@ export function Ranks() {
           {rank.imageUrl ? (
             <Image src={rank.imageUrl} alt={`${rank.name} icon`} width={48} height={48} className="mb-2"/>
           ) : (
-            <Shield className="w-12 h-12 mb-2 text-slate-400" />
+            <Shield className="w-12 h-12 mb-2 text-muted-foreground" />
           )}
-          <CardTitle className="text-2xl font-headline" style={titleStyle}>{rank.name}</CardTitle>
-          <p className="text-3xl font-semibold text-foreground">₹{rank.price}</p>
-          {rank.coinBonus && <p className="text-sm font-medium text-green-600">{rank.coinBonus}</p>}
+          <CardTitle className={cn("text-3xl font-black", rank.gradientFrom && rank.gradientTo && "text-gradient")} style={titleStyle}>{rank.name}</CardTitle>
+          <p className="text-4xl font-bold text-foreground">₹{rank.price}</p>
+          {rank.coinBonus && <p className="text-sm font-medium text-green-500">{rank.coinBonus}</p>}
         </CardHeader>
         <CardContent className="flex-grow">
           <ul className="space-y-3">
@@ -413,13 +420,13 @@ export function Ranks() {
   };
 
   return (
-    <section id="ranks" className="w-full py-12 md:py-20 relative">
+    <section id="ranks" className="w-full py-16 md:py-24 relative">
       {!isAuthenticated && <AdminLogin onLogin={handleLogin} />}
 
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center space-y-4 mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-headline">Server Ranks</h2>
-          <CardDescription className="max-w-2xl mx-auto !text-base">
+        <div className="text-center space-y-4 mb-12">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight font-headline animate-slide-in">Server Ranks</h2>
+          <CardDescription className="max-w-2xl mx-auto !text-lg">
             Upgrade your rank to unlock powerful perks and show your support!
           </CardDescription>
         </div>
@@ -443,7 +450,7 @@ export function Ranks() {
         </Dialog>
 
         {isLoading && <p className="text-center">Loading ranks...</p>}
-        {ranks && ranks.length === 0 && !isLoading && <p className="text-center">No ranks available yet.</p>}
+        {ranks && ranks.length === 0 && !isLoading && <p className="text-center text-muted-foreground">No ranks available yet.</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
           {ranks?.map(renderRankCard)}
@@ -452,4 +459,3 @@ export function Ranks() {
     </section>
   );
 }
-

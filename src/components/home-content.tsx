@@ -13,17 +13,17 @@ import { DataUsageDialog } from "./data-usage-dialog";
 export function HomeContent() {
 
   return (
-    <section className="w-full py-12 md:py-20">
-      <div className="container mx-auto px-4 md:px-6 space-y-12">
-        <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
+    <section className="w-full py-16 md:py-24">
+      <div className="container mx-auto px-4 md:px-6 space-y-16">
+        <div className="grid gap-12 lg:grid-cols-3 lg:gap-16 items-start">
           <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-headline">Welcome to the official Cloudverse Store</h2>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight font-headline animate-slide-in">Welcome to the official Cloudverse Store</h2>
             <p className="text-lg text-muted-foreground">
               Cloudverse is a free-to-play Public Minecraft Server. This is the official store where you can purchase ranks, coins, and other items to enhance your gameplay experience and grant you special perks.
             </p>
-             <Card className="transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-xl">
+             <Card className="transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20">
                 <CardHeader>
-                    <CardTitle className="font-headline text-2xl">Refund Policy</CardTitle>
+                    <CardTitle className="font-bold text-2xl">Refund Policy</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-muted-foreground">
@@ -35,12 +35,12 @@ export function HomeContent() {
                 </CardContent>
              </Card>
           </div>
-          <Card className="transform hover:-translate-y-2 transition-transform duration-300 shadow-lg hover:shadow-accent/20 hover:shadow-2xl bg-accent/10 border-accent/50">
+          <Card className="transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent/20 bg-accent/5 border-accent/20">
             <CardHeader className="items-center text-center">
               <div className="p-4 bg-accent/20 rounded-full w-fit mb-2">
-                <ShoppingCart className="w-8 h-8 text-accent-foreground"/>
+                <ShoppingCart className="w-8 h-8 text-accent"/>
               </div>
-              <CardTitle className="font-headline text-2xl text-accent-foreground">How to Purchase</CardTitle>
+              <CardTitle className="font-bold text-2xl text-accent">How to Purchase</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-center">
               <p className="text-muted-foreground">
@@ -56,38 +56,38 @@ export function HomeContent() {
           </Card>
         </div>
 
-        <Card className="w-full shadow-lg transform hover:-translate-y-2 transition-transform duration-300 hover:shadow-primary/20 hover:shadow-2xl">
+        <Card className="w-full transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20">
           <CardHeader>
-            <CardTitle className="text-2xl md:text-3xl font-headline">Legal Information</CardTitle>
-            <CardDescription>Review our terms and policies before making a purchase.</CardDescription>
+            <CardTitle className="text-3xl md:text-4xl font-black">Legal Information</CardTitle>
+            <CardDescription className="!text-lg">Review our terms and policies before making a purchase.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 font-semibold text-lg">
-                    <FileText className="w-5 h-5 text-primary"/>
+              <div className="flex flex-col gap-2 p-6 rounded-lg bg-card/50 hover:bg-card transition-colors">
+                  <div className="flex items-center gap-3 font-semibold text-lg">
+                    <FileText className="w-6 h-6 text-primary"/>
                     Terms & Conditions
                   </div>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm flex-grow">
                     These terms govern your use of our webstore and the purchase of any products.
                   </p>
                   <TermsDialog />
               </div>
-               <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 font-semibold text-lg">
-                    <Shield className="w-5 h-5 text-primary"/>
+               <div className="flex flex-col gap-2 p-6 rounded-lg bg-card/50 hover:bg-card transition-colors">
+                  <div className="flex items-center gap-3 font-semibold text-lg">
+                    <Shield className="w-6 h-6 text-primary"/>
                     Privacy Policy
                   </div>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm flex-grow">
                     Learn how we collect, use, and protect your personal data.
                   </p>
                   <PrivacyDialog />
               </div>
-              <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 font-semibold text-lg">
-                    <Database className="w-5 h-5 text-primary"/>
+              <div className="flex flex-col gap-2 p-6 rounded-lg bg-card/50 hover:bg-card transition-colors">
+                  <div className="flex items-center gap-3 font-semibold text-lg">
+                    <Database className="w-6 h-6 text-primary"/>
                     Data Usage
                   </div>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm flex-grow">
                     Find out for what purposes your personal data may be used.
                   </p>
                   <DataUsageDialog />
