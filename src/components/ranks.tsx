@@ -30,6 +30,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -44,10 +45,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Shield, Edit, Trash, PlusCircle, Upload } from "lucide-react";
+import { Check, Shield, Edit, Trash, PlusCircle, Upload, Palette } from "lucide-react";
 import { BuyNowButton } from "./buy-now-button";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "./ui/checkbox";
 
 const rankSchema = z.object({
   name: z.string().min(1, "Rank name is required."),
@@ -75,6 +78,37 @@ type Rank = {
   bestValue?: boolean;
   adminKey?: string;
 };
+
+const PRESET_COLORS = [
+  '#FFFFFF', '#000000', '#FF5555', '#55FFFF', '#55FF55', '#FFFF55',
+  '#FF55FF', '#00AAAA', '#FFAA00', '#AA00AA', '#AAAAAA', '#555555'
+];
+
+function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="icon" className="w-10 h-10">
+            <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: value }} />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-2">
+          <div className="grid grid-cols-6 gap-2">
+            {PRESET_COLORS.map(color => (
+              <Button key={color} variant="outline" size="icon" className="w-8 h-8" onClick={() => onChange(color)}>
+                <div className="w-5 h-5 rounded-full" style={{ backgroundColor: color }} />
+              </Button>
+            ))}
+          </div>
+          <Input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-10 mt-2 p-1" />
+        </PopoverContent>
+      </Popover>
+      <Input value={value} onChange={e => onChange(e.target.value)} className="h-10" />
+    </div>
+  );
+}
+
 
 function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState("");
@@ -125,7 +159,7 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave: () => void; onOpenChange: (open: boolean) => void; }) {
+function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }) {
   const firestore = useFirestore();
   const { uploadFile } = useStorage();
   const { toast } = useToast();
@@ -135,6 +169,7 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
     reset,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RankFormValues>({
     resolver: zodResolver(rankSchema),
@@ -143,9 +178,9 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
       price: rank?.price || 0,
       perks: rank?.perks.join("\n") || "",
       coinBonus: rank?.coinBonus || "",
-      textColor: rank?.textColor || "#ffffff",
-      gradientFrom: rank?.gradientFrom || "#868f96",
-      gradientTo: rank?.gradientTo || "#596164",
+      textColor: rank?.textColor || "#FFFFFF",
+      gradientFrom: rank?.gradientFrom || "",
+      gradientTo: rank?.gradientTo || "",
       imageUrl: rank?.imageUrl || "",
       bestValue: rank?.bestValue || false,
     },
@@ -156,7 +191,6 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
 
       try {
         let uploadedImageUrl = rank?.imageUrl || '';
-        // Check if a new file is being uploaded
         if (data.imageUrl && data.imageUrl[0] instanceof File) {
           const file: File = data.imageUrl[0];
           const path = `ranks/${Date.now()}_${file.name}`;
@@ -164,15 +198,9 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
         }
 
         const rankData = {
-          name: data.name,
-          price: data.price,
+          ...data,
           perks: data.perks.split('\n').filter(p => p.trim() !== ""),
-          coinBonus: data.coinBonus,
-          textColor: data.textColor,
-          gradientFrom: data.gradientFrom,
-          gradientTo: data.gradientTo,
           imageUrl: uploadedImageUrl,
-          bestValue: data.bestValue,
           adminKey: "hammadisjassi",
         };
 
@@ -192,59 +220,72 @@ function RankForm({ rank, onSave, onOpenChange }: { rank?: WithId<Rank>; onSave:
       }
   };
   
-  const watchedTextColor = watch("textColor", rank?.textColor || "#ffffff");
-  const watchedGradientFrom = watch("gradientFrom", rank?.gradientFrom || "#868f96");
-  const watchedGradientTo = watch("gradientTo", rank?.gradientTo || "#596164");
-
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Input {...register("name")} placeholder="Rank Name" />
-      {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
-
-      <Input {...register("price")} type="number" placeholder="Price" />
-      {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
-
-      <Textarea {...register("perks")} placeholder="Perks (one per line, emojis supported ✨)" rows={4} />
-      {errors.perks && <p className="text-destructive text-sm">{errors.perks.message}</p>}
-      
-      <Input {...register("coinBonus")} placeholder="Coin Bonus (e.g., + 1,000 coins)" />
-
-       <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="textColor">Text Color</Label>
-          <div className="flex items-center gap-2">
-            <Input id="textColor" type="color" {...register("textColor")} className="p-1 h-10"/>
-            <Input value={watchedTextColor} onChange={e => setValue("textColor", e.target.value)} className="h-10"/>
-          </div>
+            <Label htmlFor="name">Rank Name</Label>
+            <Input id="name" {...register("name")} placeholder="e.g., Warrior" />
+            {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
         </div>
         <div className="space-y-2">
-           <Label>Image</Label>
-           <Input id="imageUrl" type="file" {...register("imageUrl")} accept="image/png, image/jpeg" className="text-sm"/>
-           {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
+            <Label htmlFor="price">Price (₹)</Label>
+            <Input id="price" {...register("price")} type="number" placeholder="e.g., 500" />
+            {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
         </div>
       </div>
       
       <div className="space-y-2">
-        <Label>Gradient (optional)</Label>
-        <div className="grid grid-cols-2 gap-4">
-           <div className="flex items-center gap-2">
-             <Input type="color" {...register("gradientFrom")} className="p-1 h-10"/>
-             <Input value={watchedGradientFrom} onChange={e => setValue("gradientFrom", e.target.value)} placeholder="From" className="h-10"/>
-           </div>
-           <div className="flex items-center gap-2">
-             <Input type="color" {...register("gradientTo")} className="p-1 h-10"/>
-             <Input value={watchedGradientTo} onChange={e => setValue("gradientTo", e.target.value)} placeholder="To" className="h-10"/>
-           </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input {...register("bestValue")} type="checkbox" id="bestValue" className="h-4 w-4"/>
-        <Label htmlFor="bestValue" className="text-sm font-medium">Mark as "Best Value"</Label>
+        <Label htmlFor="perks">Perks (one per line)</Label>
+        <Textarea id="perks" {...register("perks")} placeholder="✨ One awesome perk per line..." rows={5} />
+        {errors.perks && <p className="text-destructive text-sm">{errors.perks.message}</p>}
       </div>
       
+      <div className="space-y-2">
+        <Label htmlFor="coinBonus">Coin Bonus (optional)</Label>
+        <Input id="coinBonus" {...register("coinBonus")} placeholder="e.g., +1,000 Coins" />
+      </div>
+
+      <div className="space-y-2">
+         <Label>Image (optional)</Label>
+         <Input id="imageUrl" type="file" {...register("imageUrl")} accept="image/png, image/jpeg" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+         {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
+      </div>
+
+      <Card className="p-4 bg-muted/30">
+        <CardHeader className="p-2">
+            <CardTitle className="text-lg flex items-center gap-2"><Palette /> Display Colors</CardTitle>
+        </CardHeader>
+        <CardContent className="p-2 space-y-4">
+            <div className="space-y-2">
+                <Label>Text Color</Label>
+                <ColorPicker value={watch('textColor') || ''} onChange={(color) => setValue('textColor', color)} />
+            </div>
+            <div className="space-y-2">
+                <Label>Gradient (optional)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="gradientFrom" className="text-sm font-normal text-muted-foreground">From</Label>
+                        <ColorPicker value={watch('gradientFrom') || ''} onChange={(color) => setValue('gradientFrom', color)} />
+                    </div>
+                    <div className="spacey-y-2">
+                         <Label htmlFor="gradientTo" className="text-sm font-normal text-muted-foreground">To</Label>
+                        <ColorPicker value={watch('gradientTo') || ''} onChange={(color) => setValue('gradientTo', color)} />
+                    </div>
+                </div>
+            </div>
+        </CardContent>
+      </Card>
+      
+      <div className="flex items-center space-x-2">
+        <Checkbox id="bestValue" checked={watch('bestValue')} onCheckedChange={(checked) => setValue('bestValue', !!checked)} />
+        <Label htmlFor="bestValue" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Mark as "Best Value"
+        </Label>
+      </div>
+
       <DialogFooter>
+        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save Rank"}
         </Button>
@@ -301,7 +342,7 @@ export function Ranks() {
             WebkitBackgroundClip: 'text',
             backgroundClip: 'text',
           }
-        : { color: rank.textColor };
+        : { color: rank.textColor || '#FFFFFF' };
 
     return (
       <Card key={rank.id} className={cn("flex flex-col transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl", rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")}>
@@ -309,7 +350,7 @@ export function Ranks() {
           <Badge className="absolute -top-3 right-3 bg-accent text-accent-foreground hover:bg-accent/90" >BEST VALUE</Badge>
         )}
         {isAuthenticated && (
-          <div className="absolute top-2 right-2 flex gap-1">
+          <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md">
             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleOpenForm(rank)}>
               <Edit className="h-4 w-4" />
             </Button>
@@ -318,7 +359,7 @@ export function Ranks() {
             </Button>
           </div>
         )}
-        <CardHeader className="items-center text-center">
+        <CardHeader className="items-center text-center pt-8">
           {rank.imageUrl ? (
             <Image src={rank.imageUrl} alt={`${rank.name} icon`} width={48} height={48} className="mb-2"/>
           ) : (
@@ -352,9 +393,9 @@ export function Ranks() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center space-y-4 mb-10">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-headline">Server Ranks</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto !text-base">
+          <CardDescription className="max-w-2xl mx-auto !text-base">
             Upgrade your rank to unlock powerful perks and show your support!
-          </p>
+          </CardDescription>
         </div>
 
         {isAuthenticated && (
@@ -365,12 +406,13 @@ export function Ranks() {
           </div>
         )}
         
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="max-w-lg">
+        <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setEditingRank(undefined); } setIsFormOpen(open); }}>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{editingRank ? 'Edit' : 'Add'} Rank</DialogTitle>
+              <CardDescription>Fill out the details for the rank below.</CardDescription>
             </DialogHeader>
-            <RankForm rank={editingRank} onSave={handleFormSave} onOpenChange={setIsFormOpen} />
+            <RankForm rank={editingRank} onSave={handleFormSave} />
           </DialogContent>
         </Dialog>
 

@@ -178,26 +178,39 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Input {...register("name")} placeholder="Staff Name" />
-      {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="name">Staff Name</Label>
+        <Input id="name" {...register("name")} placeholder="e.g., Jane Doe" />
+        {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="rank">Rank</Label>
+        <Input id="rank" {...register("rank")} placeholder="e.g., Admin, Moderator" />
+        {errors.rank && <p className="text-destructive text-sm">{errors.rank.message}</p>}
+      </div>
       
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="imageUrl">Profile Image</Label>
-        <Input {...register("imageUrl")} type="file" id="imageUrl" accept="image/*" />
+        <Input id="imageUrl" {...register("imageUrl")} type="file" accept="image/*" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
         {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
       </div>
 
-      <Input {...register("rank")} placeholder="Rank (e.g., Admin, Moderator)" />
-      {errors.rank && <p className="text-destructive text-sm">{errors.rank.message}</p>}
-
-      <Input {...register("email")} placeholder="User Email (for chat badge)" />
-      {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
+      <div className="space-y-2">
+        <Label htmlFor="email">User Email (for chat badge)</Label>
+        <Input id="email" {...register("email")} placeholder="e.g., user@example.com" />
+        {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
+      </div>
       
-      <Textarea {...register("roleDescription")} placeholder="Role Description" rows={4} />
-      {errors.roleDescription && <p className="text-destructive text-sm">{errors.roleDescription.message}</p>}
+      <div className="space-y-2">
+        <Label htmlFor="roleDescription">Role Description</Label>
+        <Textarea id="roleDescription" {...register("roleDescription")} placeholder="Briefly describe their role..." rows={4} />
+        {errors.roleDescription && <p className="text-destructive text-sm">{errors.roleDescription.message}</p>}
+      </div>
       
       <DialogFooter>
+         <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
         <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Staff Member"}</Button>
       </DialogFooter>
     </form>
@@ -234,7 +247,7 @@ export function Staff() {
   };
 
   const handleDelete = async (staffId: string) => {
-    if (!firestore || !window.confirm("Are you sure?")) return;
+    if (!firestore || !window.confirm("Are you sure? This action cannot be undone.")) return;
     const staffDocRef = doc(firestore, "staff", staffId);
     try {
         await deleteDocumentNonBlocking(staffDocRef);
@@ -262,9 +275,12 @@ export function Staff() {
           </div>
         )}
         
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>{editingStaff ? 'Edit' : 'Add'} Staff Member</DialogTitle></DialogHeader>
+        <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setEditingStaff(undefined); } setIsFormOpen(open); }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+                <DialogTitle>{editingStaff ? 'Edit' : 'Add'} Staff Member</DialogTitle>
+                <CardDescription>Manage the details for your team members.</CardDescription>
+            </DialogHeader>
             <StaffForm staffMember={editingStaff} onSave={handleFormSave} />
           </DialogContent>
         </Dialog>
@@ -307,12 +323,12 @@ export function Staff() {
             {staff?.map((member) => (
               <Card key={member.id} className="flex flex-col text-center items-center transform hover:-translate-y-2 transition-transform duration-300 shadow-md hover:shadow-primary/20 hover:shadow-2xl relative">
                  {isAuthenticated && (
-                  <div className="absolute top-2 right-2 flex gap-1">
+                  <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md">
                     <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleOpenForm(member)}><Edit className="h-4 w-4" /></Button>
                     <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDelete(member.id)}><Trash className="h-4 w-4 text-destructive" /></Button>
                   </div>
                 )}
-                <CardHeader>
+                <CardHeader className="pt-8">
                   {member.imageUrl && (
                     <Image src={member.imageUrl} alt={`${member.name}'s profile picture`} width={80} height={80} className="rounded-full border-4 border-primary/10 shadow-md mx-auto"/>
                   )}
