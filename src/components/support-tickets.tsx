@@ -102,8 +102,6 @@ function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) 
 
     try {
       const batch = writeBatch(firestore);
-
-      // 🧾 Main ticket
       const ticketRef = doc(collection(firestore, "support_tickets"));
       const newTicketData = {
         subject: data.subject,
@@ -114,7 +112,6 @@ function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) 
       };
       batch.set(ticketRef, newTicketData);
 
-      // 💬 First message in subcollection
       const messageRef = doc(collection(ticketRef, "messages"));
       const newMessageData = {
         message: data.message,
@@ -197,86 +194,6 @@ function TicketMessages({ ticketId }: { ticketId: string }) {
 }
 
 // -------------------------------------------------------------
-// ✉️ Reply Form
-// -------------------------------------------------------------
-function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>; onReplied: () => void }) {
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<ReplyFormValues>({
-    resolver: zodResolver(replySchema),
-  });
-
-  const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
-
-  const onSubmit: SubmitHandler<ReplyFormValues> = async (data) => {
-    if (!firestore || !user || !user.email) return;
-
-    const ticketRef = doc(firestore, "support_tickets", ticket.id);
-    const messagesColRef = collection(ticketRef, "messages");
-
-    const newMessage = {
-      message: data.reply,
-      userId: user.uid,
-      userEmail: user.email,
-      createdAt: new Date().toISOString(),
-      isStaff,
-    };
-
-    await addDocumentNonBlocking(messagesColRef, newMessage);
-
-    if (isStaff && ticket.status === "open") {
-      updateDocumentNonBlocking(ticketRef, { status: "in-progress" });
-    }
-
-    toast({ title: "Reply Sent" });
-    reset();
-    onReplied();
-  };
-
-  if (ticket.status === "closed") return null;
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex gap-2">
-      <Input {...register("reply")} placeholder="Type your reply..." />
-      <Button type="submit" disabled={isSubmitting}>Reply</Button>
-    </form>
-  );
-}
-
-// -------------------------------------------------------------
-// ⚙️ Ticket Actions
-// -------------------------------------------------------------
-function TicketActions({ ticket }: { ticket: WithId<Ticket> }) {
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
-
-  const handleStatusChange = (status: "open" | "closed" | "in-progress") => {
-    if (!firestore) return;
-    const ticketRef = doc(firestore, "support_tickets", ticket.id);
-    updateDocumentNonBlocking(ticketRef, { status });
-  };
-
-  if (!isStaff) return null;
-
-  return (
-    <div className="flex gap-2">
-      {ticket.status !== "closed" && (
-        <Button variant="destructive" onClick={() => handleStatusChange("closed")}>
-          Close Ticket
-        </Button>
-      )}
-      {ticket.status !== "open" && (
-        <Button variant="outline" onClick={() => handleStatusChange("open")}>
-          Re-open Ticket
-        </Button>
-      )}
-    </div>
-  );
-}
-
-// -------------------------------------------------------------
 // 📜 Ticket List
 // -------------------------------------------------------------
 function TicketList() {
@@ -286,13 +203,14 @@ function TicketList() {
 
   const ticketsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
+    
     const ticketsRef = collection(firestore, "support_tickets");
 
     if (isStaff) {
-      // Admins: get all tickets
+      // Admins fetch all tickets
       return query(ticketsRef, orderBy("createdAt", "desc"));
     } else {
-      // Users: only their own tickets
+      // Normal users fetch only their own tickets
       return query(
         ticketsRef,
         where("userId", "==", user.uid),
@@ -301,9 +219,13 @@ function TicketList() {
     }
   }, [firestore, user, isStaff]);
 
-  const { data: tickets, isLoading } = useCollection<Ticket>(ticketsQuery);
+  const { data: tickets, isLoading, error } = useCollection<Ticket>(ticketsQuery);
 
   if (isLoading) return <p>Loading tickets...</p>;
+  if (error) {
+    console.error(error);
+    return <p className="text-destructive text-center mt-8">Error loading tickets. You may not have permission to view them.</p>;
+  }
   if (!tickets || tickets.length === 0)
     return <p className="text-center mt-8">No tickets found.</p>;
 
@@ -344,11 +266,7 @@ function TicketList() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-4 border-t">
-              <div className="space-y-4">
-                <TicketMessages ticketId={ticket.id} />
-                <ReplyForm ticket={ticket} onReplied={() => {}} />
-                <TicketActions ticket={ticket} />
-              </div>
+              <TicketMessages ticketId={ticket.id} />
             </AccordionContent>
           </AccordionItem>
         ))}
@@ -374,3 +292,5 @@ export function SupportTickets() {
     </div>
   );
 }
+
+    
