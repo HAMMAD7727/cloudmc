@@ -120,7 +120,7 @@ function ColorSelect({ value, onChange }: { value?: string; onChange: (value: st
             </div>
           </SelectItem>
         ))}
-         <SelectItem value="">None</SelectItem>
+         <SelectItem value="none">None</SelectItem>
       </SelectContent>
     </Select>
   );
@@ -219,6 +219,9 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
           perks: data.perks.split('\n').filter(p => p.trim() !== ""),
           imageUrl: uploadedImageUrl,
           adminKey: "hammadisjassi",
+          textColor: data.textColor === 'none' ? '' : data.textColor,
+          gradientFrom: data.gradientFrom === 'none' ? '' : data.gradientFrom,
+          gradientTo: data.gradientTo === 'none' ? '' : data.gradientTo,
         };
 
         if (rank) {
@@ -237,6 +240,10 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
       }
   };
   
+  const handleColorChange = (field: 'textColor' | 'gradientFrom' | 'gradientTo', value: string) => {
+    setValue(field, value);
+  };
+
   return (
     <div className="max-h-[80vh] overflow-y-auto p-1 pr-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -277,18 +284,18 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
             <CardContent className="p-2 space-y-4">
                 <div className="space-y-2">
                     <Label>Text Color</Label>
-                    <ColorSelect value={watch('textColor')} onChange={(color) => setValue('textColor', color)} />
+                    <ColorSelect value={watch('textColor')} onChange={(color) => handleColorChange('textColor', color)} />
                 </div>
                 <div className="space-y-2">
                     <Label>Gradient (optional)</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="gradientFrom" className="text-sm font-normal text-muted-foreground">From</Label>
-                            <ColorSelect value={watch('gradientFrom')} onChange={(color) => setValue('gradientFrom', color)} />
+                            <ColorSelect value={watch('gradientFrom')} onChange={(color) => handleColorChange('gradientFrom', color)} />
                         </div>
                         <div className="spacey-y-2">
                             <Label htmlFor="gradientTo" className="text-sm font-normal text-muted-foreground">To</Label>
-                            <ColorSelect value={watch('gradientTo')} onChange={(color) => setValue('gradientTo', color)} />
+                            <ColorSelect value={watch('gradientTo')} onChange={(color) => handleColorChange('gradientTo', color)} />
                         </div>
                     </div>
                 </div>
@@ -445,3 +452,4 @@ export function Ranks() {
     </section>
   );
 }
+
