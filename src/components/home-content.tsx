@@ -7,11 +7,10 @@ import { ShoppingCart, Ticket } from "lucide-react";
 import { useTabStore } from "@/lib/tab-store";
 
 export function HomeContent() {
-  const { setMainTab, setCommunityTab } = useTabStore();
+  const { setMainTab } = useTabStore();
 
-  const handleCreateTicketClick = () => {
+  const handleHowToPurchaseClick = () => {
     setMainTab("community");
-    setCommunityTab("support");
   };
 
   return (
@@ -32,7 +31,7 @@ export function HomeContent() {
                         All payments are final and non-refundable. Attempting a chargeback or opening a PayPal dispute will result in permanent and irreversible banishment from all of our servers, and other Minecraft stores.
                     </p>
                     <p className="text-sm text-muted-foreground">
-                        Payments are taken and secured by our staff after a ticket is created.
+                        All purchases are handled by staff through our official Discord server.
                     </p>
                 </CardContent>
              </Card>
@@ -46,11 +45,11 @@ export function HomeContent() {
             </CardHeader>
             <CardContent className="space-y-4 text-center">
               <p className="text-muted-foreground">
-                To buy an item, please create a support ticket. Our staff will contact you to handle the payment and delivery of your items in-game.
+                To buy an item, please join our Discord server and create a ticket. Our staff will contact you to handle the payment and delivery of your items in-game.
               </p>
-              <Button onClick={handleCreateTicketClick} className="w-full">
+              <Button onClick={handleHowToPurchaseClick} className="w-full">
                 <Ticket className="mr-2"/>
-                Create a Purchase Ticket
+                Join our Community
               </Button>
             </CardContent>
           </Card>

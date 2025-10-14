@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -9,39 +8,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveChat } from "./live-chat";
-import { SupportTickets } from "./support-tickets";
 import { useUser } from "@/firebase";
-import { useTabStore } from "@/lib/tab-store";
 
 export function Community() {
-  const { user, isUserLoading } = useUser();
-  const { communityTab, setCommunityTab } = useTabStore();
-
-  // Sync tab with URL hash
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.substring(1); // remove #
-      if (hash === 'support' || hash === 'live-chat') {
-        setCommunityTab(hash);
-      }
-    };
-
-    // Initial check
-    handleHashChange();
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, [setCommunityTab]);
-
-  const handleTabClick = (value: string) => {
-    setCommunityTab(value);
-    window.location.hash = value;
-  };
-
+  const { isUserLoading } = useUser();
 
   if (isUserLoading) {
     return (
@@ -64,38 +35,17 @@ export function Community() {
           </CardDescription>
         </div>
 
-        <Tabs value={communityTab} onValueChange={setCommunityTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="live-chat" onClick={() => handleTabClick('live-chat')}>Live Chat</TabsTrigger>
-            <TabsTrigger value="support" onClick={() => handleTabClick('support')}>Support Tickets</TabsTrigger>
-          </TabsList>
-          <TabsContent value="live-chat" id="live-chat">
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Global Chat</CardTitle>
-                <CardDescription>
-                  Chat with other players online right now.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LiveChat />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="support" id="support">
-             <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Support & Purchases</CardTitle>
-                <CardDescription>
-                  Need help or want to buy an item? Create a ticket and our staff will assist you.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SupportTickets />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <Card className="mt-6 max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>Global Chat</CardTitle>
+            <CardDescription>
+              Chat with other players online right now.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LiveChat />
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

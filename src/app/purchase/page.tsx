@@ -59,13 +59,6 @@ export default function PurchasePage() {
                         </div>
                     </div>
                  </div>
-
-                 <div className="text-center pt-6">
-                    <p className="text-lg font-semibold">Alternatively, create a ticket right here on the website!</p>
-                    <Button asChild size="lg" className="mt-4">
-                        <Link href="/#support">Create a Ticket on Website</Link>
-                    </Button>
-                 </div>
             </CardContent>
          </Card>
          <div className="mt-6 text-center">
