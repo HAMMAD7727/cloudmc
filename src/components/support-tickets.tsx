@@ -257,8 +257,10 @@ function TicketList() {
     const ticketsCollection = collection(firestore, "support_tickets");
     
     if (isStaff) {
+        // Admins can list all tickets
         return query(ticketsCollection, orderBy("createdAt", "desc"));
     } else {
+        // Normal users can only list their own tickets
         return query(ticketsCollection, where("userId", "==", user.uid), orderBy("createdAt", "desc"));
     }
   }, [firestore, user, isStaff]);
@@ -302,8 +304,7 @@ function TicketList() {
 
 export function SupportTickets() {
   const { user } = useUser();
-  const [showCreate, setShowCreate] = useState(true);
-
+  
   if (!user) {
     return <p className="text-center">Please log in to create or view support tickets.</p>;
   }
