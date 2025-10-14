@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -41,6 +42,13 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,7 +57,6 @@ import { Check, Shield, Edit, Trash, PlusCircle, Upload, Palette } from "lucide-
 import { BuyNowButton } from "./buy-now-button";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "./ui/checkbox";
 
 const rankSchema = z.object({
@@ -80,32 +87,42 @@ type Rank = {
 };
 
 const PRESET_COLORS = [
-  '#FFFFFF', '#000000', '#FF5555', '#55FFFF', '#55FF55', '#FFFF55',
-  '#FF55FF', '#00AAAA', '#FFAA00', '#AA00AA', '#AAAAAA', '#555555'
+    { name: 'White', value: '#FFFFFF' },
+    { name: 'Black', value: '#000000' },
+    { name: 'Dark Red', value: '#AA0000' },
+    { name: 'Red', value: '#FF5555' },
+    { name: 'Gold', value: '#FFAA00' },
+    { name: 'Yellow', value: '#FFFF55' },
+    { name: 'Dark Green', value: '#00AA00' },
+    { name: 'Green', value: '#55FF55' },
+    { name: 'Aqua', value: '#55FFFF' },
+    { name: 'Dark Aqua', value: '#00AAAA' },
+    { name: 'Dark Blue', value: '#0000AA' },
+    { name: 'Blue', value: '#5555FF' },
+    { name: 'Light Purple', value: '#FF55FF' },
+    { name: 'Dark Purple', value: '#AA00AA' },
+    { name: 'Gray', value: '#AAAAAA' },
+    { name: 'Dark Gray', value: '#555555' },
 ];
 
-function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+function ColorSelect({ value, onChange }: { value?: string; onChange: (value: string) => void }) {
   return (
-    <div className="flex items-center gap-2">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="icon" className="w-10 h-10">
-            <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: value }} />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-2">
-          <div className="grid grid-cols-6 gap-2">
-            {PRESET_COLORS.map(color => (
-              <Button key={color} variant="outline" size="icon" className="w-8 h-8" onClick={() => onChange(color)}>
-                <div className="w-5 h-5 rounded-full" style={{ backgroundColor: color }} />
-              </Button>
-            ))}
-          </div>
-          <Input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-10 mt-2 p-1" />
-        </PopoverContent>
-      </Popover>
-      <Input value={value} onChange={e => onChange(e.target.value)} className="h-10" />
-    </div>
+    <Select onValueChange={onChange} value={value}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select a color" />
+      </SelectTrigger>
+      <SelectContent>
+        {PRESET_COLORS.map(color => (
+          <SelectItem key={color.name} value={color.value}>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full border" style={{ backgroundColor: color.value }}/>
+              {color.name}
+            </div>
+          </SelectItem>
+        ))}
+         <SelectItem value="">None</SelectItem>
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -221,76 +238,78 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
   };
   
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-            <Label htmlFor="name">Rank Name</Label>
-            <Input id="name" {...register("name")} placeholder="e.g., Warrior" />
-            {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="price">Price (₹)</Label>
-            <Input id="price" {...register("price")} type="number" placeholder="e.g., 500" />
-            {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="perks">Perks (one per line)</Label>
-        <Textarea id="perks" {...register("perks")} placeholder="✨ One awesome perk per line..." rows={5} />
-        {errors.perks && <p className="text-destructive text-sm">{errors.perks.message}</p>}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="coinBonus">Coin Bonus (optional)</Label>
-        <Input id="coinBonus" {...register("coinBonus")} placeholder="e.g., +1,000 Coins" />
-      </div>
-
-      <div className="space-y-2">
-         <Label>Image (optional)</Label>
-         <Input id="imageUrl" type="file" {...register("imageUrl")} accept="image/png, image/jpeg" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
-         {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
-      </div>
-
-      <Card className="p-4 bg-muted/30">
-        <CardHeader className="p-2">
-            <CardTitle className="text-lg flex items-center gap-2"><Palette /> Display Colors</CardTitle>
-        </CardHeader>
-        <CardContent className="p-2 space-y-4">
+    <div className="max-h-[80vh] overflow-y-auto p-1 pr-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-                <Label>Text Color</Label>
-                <ColorPicker value={watch('textColor') || ''} onChange={(color) => setValue('textColor', color)} />
+                <Label htmlFor="name">Rank Name</Label>
+                <Input id="name" {...register("name")} placeholder="e.g., Warrior" />
+                {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
-                <Label>Gradient (optional)</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="gradientFrom" className="text-sm font-normal text-muted-foreground">From</Label>
-                        <ColorPicker value={watch('gradientFrom') || ''} onChange={(color) => setValue('gradientFrom', color)} />
-                    </div>
-                    <div className="spacey-y-2">
-                         <Label htmlFor="gradientTo" className="text-sm font-normal text-muted-foreground">To</Label>
-                        <ColorPicker value={watch('gradientTo') || ''} onChange={(color) => setValue('gradientTo', color)} />
+                <Label htmlFor="price">Price (₹)</Label>
+                <Input id="price" {...register("price")} type="number" placeholder="e.g., 500" />
+                {errors.price && <p className="text-destructive text-sm">{errors.price.message}</p>}
+            </div>
+        </div>
+        
+        <div className="space-y-2">
+            <Label htmlFor="perks">Perks (one per line)</Label>
+            <Textarea id="perks" {...register("perks")} placeholder="✨ One awesome perk per line..." rows={5} />
+            {errors.perks && <p className="text-destructive text-sm">{errors.perks.message}</p>}
+        </div>
+        
+        <div className="space-y-2">
+            <Label htmlFor="coinBonus">Coin Bonus (optional)</Label>
+            <Input id="coinBonus" {...register("coinBonus")} placeholder="e.g., +1,000 Coins" />
+        </div>
+
+        <div className="space-y-2">
+            <Label>Image (optional)</Label>
+            <Input id="imageUrl" type="file" {...register("imageUrl")} accept="image/png, image/jpeg" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+            {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
+        </div>
+
+        <Card className="p-4 bg-muted/30">
+            <CardHeader className="p-2">
+                <CardTitle className="text-lg flex items-center gap-2"><Palette /> Display Colors</CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 space-y-4">
+                <div className="space-y-2">
+                    <Label>Text Color</Label>
+                    <ColorSelect value={watch('textColor')} onChange={(color) => setValue('textColor', color)} />
+                </div>
+                <div className="space-y-2">
+                    <Label>Gradient (optional)</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="gradientFrom" className="text-sm font-normal text-muted-foreground">From</Label>
+                            <ColorSelect value={watch('gradientFrom')} onChange={(color) => setValue('gradientFrom', color)} />
+                        </div>
+                        <div className="spacey-y-2">
+                            <Label htmlFor="gradientTo" className="text-sm font-normal text-muted-foreground">To</Label>
+                            <ColorSelect value={watch('gradientTo')} onChange={(color) => setValue('gradientTo', color)} />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex items-center space-x-2">
-        <Checkbox id="bestValue" checked={watch('bestValue')} onCheckedChange={(checked) => setValue('bestValue', !!checked)} />
-        <Label htmlFor="bestValue" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Mark as "Best Value"
-        </Label>
-      </div>
+            </CardContent>
+        </Card>
+        
+        <div className="flex items-center space-x-2">
+            <Checkbox id="bestValue" checked={watch('bestValue')} onCheckedChange={(checked) => setValue('bestValue', !!checked)} />
+            <Label htmlFor="bestValue" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Mark as "Best Value"
+            </Label>
+        </div>
 
-      <DialogFooter>
-        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Rank"}
-        </Button>
-      </DialogFooter>
-    </form>
+        <DialogFooter className="sticky bottom-0 bg-background pt-4">
+            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+            <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Rank"}
+            </Button>
+        </DialogFooter>
+        </form>
+    </div>
   );
 }
 
@@ -407,8 +426,8 @@ export function Ranks() {
         )}
         
         <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setEditingRank(undefined); } setIsFormOpen(open); }}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
+          <DialogContent className="max-w-2xl p-0">
+            <DialogHeader className="p-6 pb-0">
               <DialogTitle>{editingRank ? 'Edit' : 'Add'} Rank</DialogTitle>
               <CardDescription>Fill out the details for the rank below.</CardDescription>
             </DialogHeader>
