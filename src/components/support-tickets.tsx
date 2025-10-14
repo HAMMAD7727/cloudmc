@@ -14,7 +14,7 @@ import {
   updateDocumentNonBlocking,
   type WithId,
 } from "@/firebase";
-import { collection, query, where, orderBy, doc } from "firebase/firestore";
+import { collection, query, where, orderBy, doc, writeBatch } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -35,7 +35,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-
 const ticketSchema = z.object({
   subject: z.string().min(5, "Subject must be at least 5 characters."),
   message: z.string().min(10, "Message must be at least 10 characters."),
@@ -51,17 +50,17 @@ type Ticket = {
   userId: string;
   userEmail: string;
   subject: string;
-  message: string;
   status: "open" | "closed" | "in-progress";
   createdAt: string;
-  replies: {
+};
+
+type TicketMessage = {
     userId: string;
     userEmail: string;
     message: string;
     createdAt: string;
     isStaff: boolean;
-  }[];
-};
+}
 
 const STAFF_UIDS = ["P6abiBvo6JXPb27SbI90o7GBPIA2", "6uLUcUb6abZURBBWShZcZKcDdy12"];
 
@@ -83,18 +82,42 @@ function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) 
         toast({ variant: "destructive", title: "Error", description: "You must be logged in to create a ticket." });
         return;
     };
-    const newTicket = {
-      ...data,
-      userId: user.uid,
-      userEmail: user.email,
-      status: "open" as const,
-      createdAt: new Date().toISOString(),
-      replies: [],
-    };
-    await addDocumentNonBlocking(collection(firestore, "support_tickets"), newTicket);
-    toast({ title: "Success", description: "Your support ticket has been created." });
-    reset();
-    onTicketCreated();
+    
+    try {
+        const batch = writeBatch(firestore);
+        
+        // 1. Create the main ticket document
+        const ticketRef = doc(collection(firestore, "support_tickets"));
+        const newTicketData = {
+            subject: data.subject,
+            userId: user.uid,
+            userEmail: user.email,
+            status: "open" as const,
+            createdAt: new Date().toISOString(),
+        };
+        batch.set(ticketRef, newTicketData);
+
+        // 2. Create the first message in the subcollection
+        const messageRef = doc(collection(ticketRef, "messages"));
+        const newMessageData = {
+            message: data.message,
+            userId: user.uid,
+            userEmail: user.email,
+            createdAt: new Date().toISOString(),
+            isStaff: STAFF_UIDS.includes(user.uid),
+        }
+        batch.set(messageRef, newMessageData);
+        
+        await batch.commit();
+
+        toast({ title: "Success", description: "Your support ticket has been created." });
+        reset();
+        onTicketCreated();
+
+    } catch (error) {
+        console.error("Error creating ticket:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not create ticket." });
+    }
   };
 
   return (
@@ -121,6 +144,37 @@ function CreateTicketForm({ onTicketCreated }: { onTicketCreated: () => void }) 
   );
 }
 
+function TicketMessages({ ticketId }: { ticketId: string }) {
+    const firestore = useFirestore();
+    
+    const messagesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        const messagesRef = collection(firestore, "support_tickets", ticketId, "messages");
+        return query(messagesRef, orderBy("createdAt", "asc"));
+    }, [firestore, ticketId]);
+
+    const { data: messages, isLoading, error } = useCollection<TicketMessage>(messagesQuery);
+    
+    if (isLoading) return <p>Loading messages...</p>;
+    if (error) return <p className="text-destructive">Error loading messages.</p>
+
+    return (
+        <div className="space-y-2">
+            <h4 className="font-semibold">Messages:</h4>
+            {messages && messages.length > 0 ? messages.map((reply) => (
+                <div key={reply.id} className={`p-3 rounded-md ${reply.isStaff ? 'bg-primary/10' : 'bg-muted/50'}`}>
+                    <p className="font-bold flex items-center gap-2">
+                        {reply.userEmail.split('@')[0]}
+                        {reply.isStaff && <Badge variant="secondary">Staff</Badge>}
+                    </p>
+                    <p className="text-foreground/90">{reply.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</p>
+                </div>
+            )) : <p className="text-muted-foreground">No messages yet.</p>}
+        </div>
+    )
+}
+
 function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>, onReplied: () => void; }) {
     const { user } = useUser();
     const firestore = useFirestore();
@@ -131,13 +185,13 @@ function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>, onReplied: (
     
     const isStaff = user ? STAFF_UIDS.includes(user.uid) : false;
 
-
     const onSubmit: SubmitHandler<ReplyFormValues> = async (data) => {
         if (!firestore || !user || !user.email) return;
 
         const ticketRef = doc(firestore, "support_tickets", ticket.id);
+        const messagesColRef = collection(ticketRef, "messages");
         
-        const newReply = {
+        const newMessage = {
             message: data.reply,
             userId: user.uid,
             userEmail: user.email,
@@ -145,12 +199,13 @@ function ReplyForm({ ticket, onReplied }: { ticket: WithId<Ticket>, onReplied: (
             isStaff: isStaff
         };
         
-        const updatedReplies = [...ticket.replies, newReply];
-        
-        updateDocumentNonBlocking(ticketRef, {
-            replies: updatedReplies,
-            status: isStaff ? "in-progress" : ticket.status
-        });
+        // Add new message to the subcollection
+        await addDocumentNonBlocking(messagesColRef, newMessage);
+
+        // Update parent ticket status if needed
+        if(isStaff && ticket.status === 'open') {
+             updateDocumentNonBlocking(ticketRef, { status: "in-progress" });
+        }
 
         toast({ title: "Reply Sent" });
         reset();
@@ -190,7 +245,6 @@ function TicketActions({ ticket }: { ticket: WithId<Ticket> }) {
     )
 }
 
-
 function TicketList() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -203,10 +257,8 @@ function TicketList() {
     const ticketsCollection = collection(firestore, "support_tickets");
     
     if (isStaff) {
-        // Admins can list all tickets, sorted by date.
         return query(ticketsCollection, orderBy("createdAt", "desc"));
     } else {
-        // Normal users can list only their own tickets, filtered by userId.
         return query(ticketsCollection, where("userId", "==", user.uid), orderBy("createdAt", "desc"));
     }
   }, [firestore, user, isStaff]);
@@ -236,22 +288,9 @@ function TicketList() {
                 </AccordionTrigger>
                 <AccordionContent className="p-4 border-t">
                     <div className="space-y-4">
-                        <p><strong className="font-medium">Original Message:</strong> {ticket.message}</p>
-                        <div className="space-y-2">
-                            <h4 className="font-semibold">Replies:</h4>
-                            {ticket.replies.length > 0 ? ticket.replies.map((reply, index) => (
-                                <div key={index} className={`p-3 rounded-md ${reply.isStaff ? 'bg-primary/10' : 'bg-muted/50'}`}>
-                                    <p className="font-bold flex items-center gap-2">
-                                        {reply.userEmail.split('@')[0]}
-                                        {reply.isStaff && <Badge variant="secondary">Staff</Badge>}
-                                    </p>
-                                    <p className="text-foreground/90">{reply.message}</p>
-                                    <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</p>
-                                </div>
-                            )) : <p className="text-muted-foreground">No replies yet.</p>}
-                        </div>
-                         <ReplyForm ticket={ticket} onReplied={() => {}} />
-                         <TicketActions ticket={ticket} />
+                        <TicketMessages ticketId={ticket.id} />
+                        <ReplyForm ticket={ticket} onReplied={() => {}} />
+                        <TicketActions ticket={ticket} />
                     </div>
                 </AccordionContent>
             </AccordionItem>
@@ -281,5 +320,3 @@ export function SupportTickets() {
     </div>
   );
 }
-
-    
