@@ -2,16 +2,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, MessageSquare, Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ShoppingCart, Users, FileText, Shield } from "lucide-react";
 import Link from "next/link";
+import { TermsDialog } from "./terms-dialog";
+import { PrivacyDialog } from "./privacy-dialog";
 
 
 export function HomeContent() {
 
   return (
     <section className="w-full py-12 md:py-20">
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6 space-y-12">
         <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight font-headline">Welcome to the official Cloudverse Store</h2>
@@ -52,6 +54,35 @@ export function HomeContent() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="w-full shadow-lg transform hover:-translate-y-2 transition-transform duration-300 hover:shadow-primary/20 hover:shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-2xl md:text-3xl font-headline">Legal Information</CardTitle>
+            <CardDescription>Review our terms and policies before making a purchase.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 font-semibold text-lg">
+                    <FileText className="w-5 h-5 text-primary"/>
+                    Terms & Conditions
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    These terms govern your use of our webstore and the purchase of any products.
+                  </p>
+                  <TermsDialog />
+              </div>
+               <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 font-semibold text-lg">
+                    <Shield className="w-5 h-5 text-primary"/>
+                    Privacy Policy
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Learn how we collect, use, and protect your personal data.
+                  </p>
+                  <PrivacyDialog />
+              </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );

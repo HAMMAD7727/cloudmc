@@ -18,8 +18,8 @@ export function PrivacyDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="link" className="text-xs text-muted-foreground/50">
-          Privacy Policy
+        <Button variant="outline" className="mt-auto">
+          Read Policy
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
@@ -44,7 +44,7 @@ export function PrivacyDialog() {
             <p>We have appointed a data privacy manager who is responsible for overseeing questions in relation to this privacy notice. If you have any questions about this privacy notice, including any requests to exercise your legal rights, please contact the data privacy manager using the details set out below.</p>
 
             <h4 className="font-semibold text-md text-foreground">CONTACT DETAILS</h4>
-            <p>Full name of legal entity: Tebex Limited, company number 08129184 of Levy Cohen &amp; Co, 5.2 Central House, 1 Ballards Lane, London, United Kingdom, N3 1LQ.</p>
+            <p>Full name of legal entity: Tebex Limited, company number 08129184 of Levy Cohen & Co, 5.2 Central House, 1 Ballards Lane, London, United Kingdom, N3 1LQ.</p>
             <p>Name or title of data privacy manager: Liam Wiltshire</p>
             <p>Email address: liam.wiltshire@overwolf.com</p>
             <p>You have the right to make a complaint at any time to the Information Commissioner's Office (ICO), the UK supervisory authority for data protection issues (www.ico.org.uk). We would, however, appreciate the chance to deal with your concerns before you approach the ICO so please contact us in the first instance.</p>

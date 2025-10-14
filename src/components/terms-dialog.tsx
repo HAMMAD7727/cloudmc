@@ -18,8 +18,8 @@ export function TermsDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="link" className="text-xs text-muted-foreground/50">
-          Terms & Conditions
+        <Button variant="outline" className="mt-auto">
+          Read Terms
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">

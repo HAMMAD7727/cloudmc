@@ -16,8 +16,6 @@ import { Feedback } from "@/components/feedback";
 import { Staff } from "@/components/staff";
 import { Community } from "@/components/community";
 import { useTabStore } from "@/lib/tab-store";
-import { TermsDialog } from "@/components/terms-dialog";
-import { PrivacyDialog } from "@/components/privacy-dialog";
 
 export default function Home() {
   const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
@@ -110,8 +108,6 @@ export default function Home() {
             <Button variant="link" asChild className="text-xs text-muted-foreground/50">
               <Link href="/admin">Admin Panel</Link>
             </Button>
-            <TermsDialog />
-            <PrivacyDialog />
           </div>
         </div>
       </footer>
