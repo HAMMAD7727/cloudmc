@@ -16,6 +16,7 @@ import { HomeContent } from "@/components/home-content";
 import { Feedback } from "@/components/feedback";
 import { Staff } from "@/components/staff";
 import { Community } from "@/components/community";
+import { Voting } from "@/components/voting";
 import { useTabStore } from "@/lib/tab-store";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Check } from "lucide-react";
@@ -87,13 +88,14 @@ export default function Home() {
         <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
           <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b z-10">
             <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-8 sm:inline-flex">
+              <TabsList className="container mx-auto h-14 rounded-none bg-transparent p-0 grid w-full grid-cols-9 sm:inline-flex">
                 <TabsTrigger value="home" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Home</TabsTrigger>
                 <TabsTrigger value="coins" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Coins</TabsTrigger>
                 <TabsTrigger value="ranks" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Ranks</TabsTrigger>
                 <TabsTrigger value="features" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Features</TabsTrigger>
                 <TabsTrigger value="news" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">News</TabsTrigger>
                 <TabsTrigger value="community" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Community</TabsTrigger>
+                <TabsTrigger value="voting" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Voting</TabsTrigger>
                 <TabsTrigger value="feedback" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Feedback</TabsTrigger>
                 <TabsTrigger value="staff" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-base transition-colors duration-300 hover:bg-primary/5">Staff</TabsTrigger>
               </TabsList>
@@ -119,6 +121,9 @@ export default function Home() {
           <TabsContent value="community" className="mt-0">
             <Community />
           </TabsContent>
+          <TabsContent value="voting" className="mt-0">
+            <Voting />
+          </TabsContent>
           <TabsContent value="feedback" className="mt-0">
             <Feedback />
           </TabsContent>
@@ -141,5 +146,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
