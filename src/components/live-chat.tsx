@@ -142,7 +142,7 @@ function ChatMessages() {
                 <span className="font-bold">{msg.displayName}</span>
                 {isStaff && <Badge variant="secondary">Staff</Badge>}
                </div>
-              <p className="bg-white p-2 rounded-lg shadow-sm">{msg.text}</p>
+              <p className="bg-background p-2 rounded-lg shadow-sm">{msg.text}</p>
               <span className="text-xs text-muted-foreground mt-1">
                 {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
               </span>
