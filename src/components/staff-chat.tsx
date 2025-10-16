@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ArrowLeft } from "lucide-react";
+import { LiveChat } from "./live-chat";
 
 export function StaffChat({ onBack }: { onBack: () => void }) {
   return (
@@ -14,19 +15,14 @@ export function StaffChat({ onBack }: { onBack: () => void }) {
           Back to Dashboard
         </Button>
         <Card className="max-w-4xl mx-auto">
-          <CardHeader className="text-center">
-            <div className="mx-auto bg-primary/10 rounded-full p-4 w-fit mb-4">
-                <MessageSquare className="w-10 h-10 text-primary" />
-            </div>
-            <CardTitle className="text-3xl font-bold">Staff Chat</CardTitle>
-            <CardDescription className="text-lg text-muted-foreground">
-              This is a private chat area for staff members only.
+          <CardHeader>
+            <CardTitle>Global Chat</CardTitle>
+            <CardDescription>
+              Chat with other players online right now.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-96 border rounded-lg flex items-center justify-center bg-muted/20">
-                <p className="text-muted-foreground">Staff chat functionality coming soon!</p>
-            </div>
+            <LiveChat />
           </CardContent>
         </Card>
       </div>

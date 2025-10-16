@@ -18,40 +18,70 @@ export function StaffGuide({ onBack }: { onBack: () => void }) {
             <div className="mx-auto bg-primary/10 rounded-full p-4 w-fit mb-4">
                 <BookOpen className="w-10 h-10 text-primary" />
             </div>
-            <CardTitle className="text-3xl font-bold">Staff Guide</CardTitle>
+            <CardTitle className="text-3xl font-bold">Admin Panel Guide</CardTitle>
             <CardDescription className="text-lg text-muted-foreground">
-              Welcome to the official Cloudverse Staff Guide.
+              Your guide to managing the Cloudverse webstore.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-invert max-w-none mx-auto text-muted-foreground">
-              <p>This guide provides essential information and procedures for all staff members. Please read it carefully and refer to it whenever you are unsure about a process.</p>
-              
-              <h3 className="text-foreground">General Conduct</h3>
-              <ul>
-                <li>Always be respectful to players and fellow staff members.</li>
-                <li>Maintain a professional and helpful attitude.</li>
-                <li>Do not abuse your powers. Use them only when necessary and as instructed.</li>
-              </ul>
+            <div className="prose prose-invert max-w-none mx-auto text-muted-foreground space-y-6">
+              <div>
+                <h3 className="text-foreground">Admin Panel Overview</h3>
+                <p>The website has several admin panels, each controlling a different section of the store. To access them, you must first navigate to the correct tab on the homepage, and then use the "Admin Login" button that appears in the top-right corner.</p>
+              </div>
 
-              <h3 className="text-foreground">Handling Player Reports</h3>
-              <p>When a player reports an issue, follow these steps:</p>
-              <ol>
-                <li>Acknowledge the report in the appropriate channel.</li>
-                <li>Investigate the issue by gathering evidence (screenshots, logs).</li>
-                <li>Take appropriate action based on server rules (e.g., warning, mute, ban).</li>
-                <li>Document the action taken in the staff logs.</li>
-              </ol>
+              <div>
+                <h3 className="text-foreground">Admin Panels & Passwords</h3>
+                <ul className="space-y-2">
+                  <li><strong>Ranks Admin:</strong> Go to the "Ranks" tab. Password: <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-foreground">hammadisjassi</code></li>
+                  <li><strong>Features Admin:</strong> Go to the "Features" tab. Password: <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-foreground">hammadisjassi</code></li>
+                  <li><strong>News Admin:</strong> Go to the "News" tab. Password: <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-foreground">hammadisjassi</code></li>
+                  <li><strong>Staff Admin:</strong> Go to the "Staff" tab. Password: <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-foreground">cloudmcstaff</code></li>
+                   <li><strong>Main Admin Dashboard:</strong> Go to <a href="/admin">/admin</a>. Password: <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-foreground">hammadisjassi</code></li>
+                </ul>
+              </div>
 
-              <h3 className="text-foreground">Handling Purchases</h3>
-              <p>When a player creates a ticket to make a purchase:</p>
-              <ol>
-                <li>Respond to the ticket promptly.</li>
-                <li>Confirm the item(s) they wish to purchase.</li>
-                <li>Provide them with the payment details.</li>
-                <li>Once payment is confirmed, manually issue the rank/items in-game.</li>
-                <li>Close the ticket and thank the player for their support.</li>
-              </ol>
+              <div>
+                <h3 className="text-foreground">Website Tabs Explained</h3>
+                 <dl className="space-y-4">
+                    <div>
+                        <dt className="font-semibold text-foreground">Home:</dt>
+                        <dd>The main landing page with general information and refund policies.</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-foreground">Coins:</dt>
+                        <dd>A static page displaying coin packages. Purchases are handled via Discord.</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-foreground">Ranks:</dt>
+                        <dd>Dynamically displays server ranks from the database. Admins can add, edit, and delete ranks.</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-foreground">Features:</dt>
+                        <dd>Dynamically displays special feature packages. Admins can manage these features.</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-foreground">News:</dt>
+                        <dd>Shows the latest server news and updates. Admins can post new articles.</dd>
+                    </div>
+                    <div>
+                        <dt className="font-semibold text-foreground">Community:</dt>
+                        <dd>Contains the global live chat for all logged-in players.</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-foreground">Voting:</dt>
+                        <dd>Provides links for players to vote for the server on various listing sites.</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-foreground">Feedback:</dt>
+                        <dd>Allows players to submit feedback and shows recent submissions.</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-foreground">Staff:</dt>
+                        <dd>Showcases the staff team. The staff admin can manage team members and access staff-only tools from here.</dd>
+                    </div>
+                </dl>
+              </div>
             </div>
           </CardContent>
         </Card>
