@@ -17,6 +17,7 @@ import { Feedback } from "@/components/feedback";
 import { Staff } from "@/components/staff";
 import { Community } from "@/components/community";
 import { Voting } from "@/components/voting";
+import { Information } from "@/components/information";
 import { useTabStore } from "@/lib/tab-store";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Check } from "lucide-react";
@@ -102,6 +103,7 @@ export default function Home() {
                 <TabsTrigger value="voting" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Voting</TabsTrigger>
                 <TabsTrigger value="feedback" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Feedback</TabsTrigger>
                 <TabsTrigger value="staff" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Staff</TabsTrigger>
+                <TabsTrigger value="information" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Information</TabsTrigger>
               </TabsList>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
@@ -133,6 +135,9 @@ export default function Home() {
           </TabsContent>
           <TabsContent value="staff" className="mt-0">
             <Staff />
+          </TabsContent>
+          <TabsContent value="information" className="mt-0">
+            <Information />
           </TabsContent>
         </Tabs>
       </main>
