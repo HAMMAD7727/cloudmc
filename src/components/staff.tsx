@@ -149,10 +149,10 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
     if (!firestore) return;
     try {
       let imageUrl = staffMember?.imageUrl || '';
+      
       if (data.imageUrl && data.imageUrl[0] instanceof File) {
         const file: File = data.imageUrl[0];
-        const path = `staff/${Date.now()}_${file.name}`;
-        imageUrl = await uploadFile(file, path);
+        imageUrl = await uploadFile(file, `staff/${Date.now()}_${file.name}`);
       }
 
       const staffData = { 
@@ -375,3 +375,5 @@ export function Staff() {
     </section>
   );
 }
+
+    
