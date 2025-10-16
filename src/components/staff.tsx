@@ -168,7 +168,7 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
       rank: staffMember?.rank || "",
       roleDescription: staffMember?.roleDescription || "",
       email: staffMember?.email || "",
-      hoverEffect: staffMember?.hoverEffect || "",
+      hoverEffect: staffMember?.hoverEffect || "None",
     },
   });
 
@@ -199,7 +199,7 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
         roleDescription: data.roleDescription,
         imageUrl: finalImageUrl,
         email: data.email,
-        hoverEffect: data.hoverEffect,
+        hoverEffect: data.hoverEffect === 'None' ? '' : data.hoverEffect,
         adminKey: "cloudmcstaff"
       };
 
@@ -277,13 +277,13 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
 
             <div className="space-y-2">
                 <Label htmlFor="hoverEffect">Hover Effect</Label>
-                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect')}>
+                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect') || 'None'}>
                     <SelectTrigger id="hoverEffect">
                         <SelectValue placeholder="Select a hover effect" />
                     </SelectTrigger>
                     <SelectContent>
                         {hoverEffects.map(effect => (
-                            <SelectItem key={effect.name} value={effect.className}>{effect.name}</SelectItem>
+                            <SelectItem key={effect.name} value={effect.name === 'None' ? 'None' : effect.className}>{effect.name}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
