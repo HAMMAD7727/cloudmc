@@ -55,6 +55,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronsUpDown, Code, Gamepad2, Settings, Edit, Trash, PlusCircle, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 const mySkills = [
   {
@@ -81,11 +82,22 @@ const mySkills = [
 
 const staffMemberSchema = z.object({
   name: z.string().min(2, "Name is required."),
-  imageUrl: z.any(),
+  imageUrl: z.any().optional(),
+  imageUrlString: z.string().optional(),
+  imageUploadMethod: z.enum(['upload', 'url']),
   rank: z.string().min(2, "Rank is required."),
   roleDescription: z.string().min(10, "Description is required."),
   email: z.string().email("A valid email is required to link to chat.").optional().or(z.literal('')),
+}).refine(data => {
+    if (data.imageUploadMethod === 'url') {
+        return !!data.imageUrlString && z.string().url().safeParse(data.imageUrlString).success;
+    }
+    return true;
+}, {
+    message: "A valid URL is required if using the URL method.",
+    path: ["imageUrlString"],
 });
+
 
 type StaffFormValues = z.infer<typeof staffMemberSchema>;
 
@@ -134,32 +146,45 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
   const firestore = useFirestore();
   const { uploadFile } = useStorage();
   const { toast } = useToast();
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<StaffFormValues>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<StaffFormValues>({
     resolver: zodResolver(staffMemberSchema),
     defaultValues: {
       name: staffMember?.name || "",
-      imageUrl: staffMember?.imageUrl || "",
+      imageUrl: "",
+      imageUrlString: staffMember?.imageUrl || "",
+      imageUploadMethod: staffMember?.imageUrl ? 'url' : 'upload',
       rank: staffMember?.rank || "",
       roleDescription: staffMember?.roleDescription || "",
       email: staffMember?.email || "",
     },
   });
 
+  const imageUploadMethod = watch("imageUploadMethod");
+
+  useEffect(() => {
+    if (staffMember) {
+        setValue("imageUrlString", staffMember.imageUrl || "");
+        setValue("imageUploadMethod", "url");
+    }
+  }, [staffMember, setValue]);
+
   const onSubmit: SubmitHandler<StaffFormValues> = async (data) => {
     if (!firestore) return;
     try {
-      let imageUrl = staffMember?.imageUrl || '';
+      let finalImageUrl = staffMember?.imageUrl || '';
       
-      if (data.imageUrl && data.imageUrl[0] instanceof File) {
+      if (data.imageUploadMethod === 'upload' && data.imageUrl && data.imageUrl[0] instanceof File) {
         const file: File = data.imageUrl[0];
-        imageUrl = await uploadFile(file, `staff/${Date.now()}_${file.name}`);
+        finalImageUrl = await uploadFile(file, `staff/${Date.now()}_${file.name}`);
+      } else if (data.imageUploadMethod === 'url' && data.imageUrlString) {
+        finalImageUrl = data.imageUrlString;
       }
 
       const staffData = { 
         name: data.name,
         rank: data.rank,
         roleDescription: data.roleDescription,
-        imageUrl: imageUrl,
+        imageUrl: finalImageUrl,
         email: data.email,
         adminKey: "cloudmcstaff"
       };
@@ -194,9 +219,34 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
             </div>
             
             <div className="space-y-2">
-                <Label htmlFor="imageUrl">Profile Image</Label>
-                <Input id="imageUrl" {...register("imageUrl")} type="file" accept="image/*" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
-                {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
+                <Label>Profile Image</Label>
+                 <RadioGroup 
+                    defaultValue={imageUploadMethod}
+                    onValueChange={(value: 'upload' | 'url') => setValue('imageUploadMethod', value)}
+                    className="grid grid-cols-2 gap-4"
+                >
+                    <div>
+                        <RadioGroupItem value="upload" id="upload" className="peer sr-only" />
+                        <Label htmlFor="upload" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            Upload File
+                        </Label>
+                    </div>
+
+                     <div>
+                        <RadioGroupItem value="url" id="url" className="peer sr-only" />
+                        <Label htmlFor="url" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            Image URL
+                        </Label>
+                    </div>
+                </RadioGroup>
+
+                {imageUploadMethod === 'upload' ? (
+                    <Input id="imageUrl" {...register("imageUrl")} type="file" accept="image/*" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+                ) : (
+                    <Input id="imageUrlString" {...register("imageUrlString")} type="text" placeholder="https://example.com/image.png" />
+                )}
+                 {errors.imageUrl && <p className="text-destructive text-sm">{(errors.imageUrl as any).message}</p>}
+                 {errors.imageUrlString && <p className="text-destructive text-sm">{errors.imageUrlString.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -375,3 +425,5 @@ export function Staff() {
     </section>
   );
 }
+
+    
