@@ -59,6 +59,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { deleteRank } from "@/ai/flows/delete-rank-flow";
 import { HoverEffectsGuide } from "./hover-effects-guide";
+import { hoverEffects } from "@/lib/effects";
 
 const rankSchema = z.object({
   name: z.string().min(1, "Rank name is required."),
@@ -70,6 +71,7 @@ const rankSchema = z.object({
   gradientTo: z.string().optional(),
   imageUrl: z.any().optional(),
   bestValue: z.boolean().default(false),
+  hoverEffect: z.string().optional(),
 });
 
 type RankFormValues = z.infer<typeof rankSchema>;
@@ -85,6 +87,7 @@ type Rank = {
   imageUrl?: string;
   bestValue?: boolean;
   adminKey?: string;
+  hoverEffect?: string;
 };
 
 const PRESET_COLORS = [
@@ -199,6 +202,7 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
       gradientTo: rank?.gradientTo || "",
       imageUrl: rank?.imageUrl || "",
       bestValue: rank?.bestValue || false,
+      hoverEffect: rank?.hoverEffect || "",
     },
   });
 
@@ -265,9 +269,24 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
             {errors.perks && <p className="text-destructive text-sm">{errors.perks.message}</p>}
         </div>
         
-        <div className="space-y-2">
-            <Label htmlFor="coinBonus">Coin Bonus (optional)</Label>
-            <Input id="coinBonus" {...register("coinBonus")} placeholder="e.g., +1,000 Coins" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="coinBonus">Coin Bonus (optional)</Label>
+                <Input id="coinBonus" {...register("coinBonus")} placeholder="e.g., +1,000 Coins" />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="hoverEffect">Hover Effect</Label>
+                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect')}>
+                    <SelectTrigger id="hoverEffect">
+                        <SelectValue placeholder="Select a hover effect" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {hoverEffects.map(effect => (
+                            <SelectItem key={effect.name} value={effect.className}>{effect.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
 
         <div className="space-y-2">
@@ -379,7 +398,7 @@ export function Ranks() {
         : { color: rank.textColor || '#FFFFFF' };
 
     return (
-      <Card key={rank.id} className={cn("flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 animate-slide-in", rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")} style={{animationDelay: `${index * 100}ms`}}>
+      <Card key={rank.id} className={cn("flex flex-col transition-all duration-300 animate-slide-in", rank.hoverEffect, rank.bestValue && "border-accent ring-2 ring-accent shadow-accent/20")} style={{animationDelay: `${index * 100}ms`}}>
         {rank.bestValue && (
           <Badge className="absolute -top-3 right-3 bg-accent text-accent-foreground hover:bg-accent/90 border-2 border-background" >BEST VALUE</Badge>
         )}
@@ -461,3 +480,5 @@ export function Ranks() {
     </section>
   );
 }
+
+    

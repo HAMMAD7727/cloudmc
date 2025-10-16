@@ -57,6 +57,8 @@ import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { HoverEffectsGuide } from "./hover-effects-guide";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { hoverEffects } from "@/lib/effects";
 
 const mySkills = [
   {
@@ -89,6 +91,7 @@ const staffMemberSchema = z.object({
   rank: z.string().min(2, "Rank is required."),
   roleDescription: z.string().min(10, "Description is required."),
   email: z.string().email("A valid email is required to link to chat.").optional().or(z.literal('')),
+  hoverEffect: z.string().optional(),
 }).refine(data => {
     if (data.imageUploadMethod === 'url') {
         return !!data.imageUrlString && z.string().url().safeParse(data.imageUrlString).success;
@@ -109,6 +112,7 @@ type StaffMember = {
   roleDescription: string;
   email?: string;
   adminKey?: string;
+  hoverEffect?: string;
 };
 
 function StaffAdminLogin({ onLogin }: { onLogin: () => void }) {
@@ -157,6 +161,7 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
       rank: staffMember?.rank || "",
       roleDescription: staffMember?.roleDescription || "",
       email: staffMember?.email || "",
+      hoverEffect: staffMember?.hoverEffect || "",
     },
   });
 
@@ -187,6 +192,7 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
         roleDescription: data.roleDescription,
         imageUrl: finalImageUrl,
         email: data.email,
+        hoverEffect: data.hoverEffect,
         adminKey: "cloudmcstaff"
       };
 
@@ -260,6 +266,20 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
                 <Label htmlFor="roleDescription">Role Description</Label>
                 <Textarea id="roleDescription" {...register("roleDescription")} placeholder="Briefly describe their role..." rows={4} />
                 {errors.roleDescription && <p className="text-destructive text-sm">{errors.roleDescription.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="hoverEffect">Hover Effect</Label>
+                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect')}>
+                    <SelectTrigger id="hoverEffect">
+                        <SelectValue placeholder="Select a hover effect" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {hoverEffects.map(effect => (
+                            <SelectItem key={effect.name} value={effect.className}>{effect.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
             
             <DialogFooter className="sticky bottom-0 bg-background/80 backdrop-blur-sm pt-4">
@@ -396,7 +416,7 @@ export function Staff() {
           ) : staff && staff.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 pt-12">
               {staff.map((member, index) => (
-                <Card key={member.id} className="flex flex-col text-center items-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 relative group animate-slide-in" style={{animationDelay: `${index * 100}ms`}}>
+                <Card key={member.id} className={cn("flex flex-col text-center items-center transition-all duration-300 relative group animate-slide-in", member.hoverEffect)} style={{animationDelay: `${index * 100}ms`}}>
                    {isAuthenticated && (
                     <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenForm(member)}><Edit className="h-4 w-4" /></Button>
@@ -427,3 +447,5 @@ export function Staff() {
     </section>
   );
 }
+
+    

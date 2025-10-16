@@ -34,12 +34,14 @@ import { PlusCircle, Edit, Trash } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { cn } from "@/lib/utils";
 import { HoverEffectsGuide } from "./hover-effects-guide";
+import { hoverEffects } from "@/lib/effects";
 
 const newsSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
   content: z.string().min(10, "Content must be at least 10 characters."),
   emoji: z.string().min(1, "Please select an emoji."),
   color: z.string().optional(),
+  hoverEffect: z.string().optional(),
 });
 
 type NewsFormValues = z.infer<typeof newsSchema>;
@@ -51,6 +53,7 @@ type NewsItem = {
   emoji: string;
   color?: string;
   adminKey?: string;
+  hoverEffect?: string;
 };
 
 const NEWS_EMOJIS = ["📰", "✨", "🎉", "📢", "🚀", "💡", "🔥", "💯"];
@@ -101,6 +104,7 @@ function NewsForm({ newsItem, onSave }: { newsItem?: WithId<NewsItem>; onSave: (
       content: newsItem?.content || "",
       emoji: newsItem?.emoji || "",
       color: newsItem?.color || "",
+      hoverEffect: newsItem?.hoverEffect || "",
     },
   });
 
@@ -161,6 +165,20 @@ function NewsForm({ newsItem, onSave }: { newsItem?: WithId<NewsItem>; onSave: (
                     <Label htmlFor="color">Highlight Color (optional)</Label>
                     <Input id="color" {...register("color")} type="color" className="p-1 h-10"/>
                 </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="hoverEffect">Hover Effect</Label>
+                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect')}>
+                    <SelectTrigger id="hoverEffect">
+                        <SelectValue placeholder="Select a hover effect" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {hoverEffects.map(effect => (
+                            <SelectItem key={effect.name} value={effect.className}>{effect.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
             <DialogFooter className="sticky bottom-0 bg-background/80 backdrop-blur-sm pt-4">
@@ -249,7 +267,7 @@ export function News() {
           {isLoading && <p className="text-center">Loading news...</p>}
           {!isLoading && newsItems?.length === 0 && <p className="text-center text-muted-foreground">No news has been posted yet.</p>}
           {newsItems?.map((item) => (
-            <Card key={item.id} className="w-full transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 relative" style={{ borderColor: item.color || 'hsl(var(--border))', borderLeftWidth: 4 }}>
+            <Card key={item.id} className={cn("w-full transition-all duration-300 relative", item.hoverEffect)} style={{ borderColor: item.color || 'hsl(var(--border))', borderLeftWidth: 4 }}>
                {isAuthenticated && (
                 <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1">
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenForm(item)}>
@@ -281,3 +299,5 @@ export function News() {
     </section>
   );
 }
+
+    

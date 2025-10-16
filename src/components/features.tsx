@@ -35,6 +35,7 @@ import * as Icons from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { cn } from "@/lib/utils";
 import { HoverEffectsGuide } from "./hover-effects-guide";
+import { hoverEffects } from "@/lib/effects";
 
 // List of some lucide-react icons. You can expand this.
 const ICON_LIST = [
@@ -60,6 +61,7 @@ const featureSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters."),
   icon: z.enum(ICON_LIST),
   color: z.string().optional(),
+  hoverEffect: z.string().optional(),
 });
 
 type FeatureFormValues = z.infer<typeof featureSchema>;
@@ -70,6 +72,7 @@ type FeatureItem = {
   icon: IconName;
   color?: string;
   adminKey?: string;
+  hoverEffect?: string;
 };
 
 function AdminLogin({ onLogin }: { onLogin: () => void }) {
@@ -118,6 +121,7 @@ function FeatureForm({ featureItem, onSave }: { featureItem?: WithId<FeatureItem
       description: featureItem?.description || "",
       icon: featureItem?.icon || "Package",
       color: featureItem?.color || "#8B5CF6",
+      hoverEffect: featureItem?.hoverEffect || "",
     },
   });
 
@@ -190,6 +194,21 @@ function FeatureForm({ featureItem, onSave }: { featureItem?: WithId<FeatureItem
                     <Input id="color" {...register("color")} type="color" className="p-1 h-10"/>
                 </div>
             </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="hoverEffect">Hover Effect</Label>
+                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect')}>
+                    <SelectTrigger id="hoverEffect">
+                        <SelectValue placeholder="Select a hover effect" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {hoverEffects.map(effect => (
+                            <SelectItem key={effect.name} value={effect.className}>{effect.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
 
             <DialogFooter className="sticky bottom-0 bg-background/80 backdrop-blur-sm pt-4">
                 <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
@@ -294,7 +313,7 @@ export function Features() {
           {featureItems?.map((item, index) => {
             const Icon = Icons[item.icon as IconName] || Icons.Package;
             return (
-            <Card key={item.id} className="w-full text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20 relative animate-slide-in" style={{animationDelay: `${index * 100}ms`}}>
+            <Card key={item.id} className={cn("w-full text-center transition-all duration-300 relative animate-slide-in", item.hoverEffect)} style={{animationDelay: `${index * 100}ms`}}>
                  {isAuthenticated && (
                 <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1">
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenForm(item)}>
@@ -322,3 +341,5 @@ export function Features() {
     </section>
   );
 }
+
+    

@@ -87,6 +87,10 @@
         "imageUrl": {
           "type": "string",
           "description": "URL for a custom image/icon for the rank."
+        },
+        "hoverEffect": {
+            "type": "string",
+            "description": "The CSS class for the hover effect."
         }
       },
       "required": [
@@ -127,6 +131,10 @@
         "color": {
           "type": "string",
           "description": "An optional highlight color for the news item card."
+        },
+        "hoverEffect": {
+            "type": "string",
+            "description": "The CSS class for the hover effect."
         }
       },
       "required": [
@@ -198,6 +206,10 @@
           "type": "string",
           "description": "The staff member's email address to link to their chat user.",
           "format": "email"
+        },
+        "hoverEffect": {
+            "type": "string",
+            "description": "The CSS class for the hover effect."
         }
       },
       "required": [
@@ -272,6 +284,10 @@
         "adminKey": {
           "type": "string",
           "description": "A secret key to authorize administrative actions."
+        },
+        "hoverEffect": {
+            "type": "string",
+            "description": "The CSS class for the hover effect."
         }
       },
       "required": [
