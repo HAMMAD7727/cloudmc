@@ -110,12 +110,14 @@ const PRESET_COLORS = [
 ];
 
 function ColorSelect({ value, onChange }: { value?: string; onChange: (value: string) => void }) {
+  const selectValue = value && value !== "none" ? value : "none";
   return (
-    <Select onValueChange={onChange} value={value}>
+    <Select onValueChange={onChange} value={selectValue}>
       <SelectTrigger>
         <SelectValue placeholder="Select a color" />
       </SelectTrigger>
       <SelectContent>
+        <SelectItem value="none">None</SelectItem>
         {PRESET_COLORS.map(color => (
           <SelectItem key={color.name} value={color.value}>
             <div className="flex items-center gap-2">
@@ -124,7 +126,6 @@ function ColorSelect({ value, onChange }: { value?: string; onChange: (value: st
             </div>
           </SelectItem>
         ))}
-         <SelectItem value="none">None</SelectItem>
       </SelectContent>
     </Select>
   );
@@ -198,8 +199,8 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
       perks: rank?.perks.join("\n") || "",
       coinBonus: rank?.coinBonus || "",
       textColor: rank?.textColor || "#FFFFFF",
-      gradientFrom: rank?.gradientFrom || "",
-      gradientTo: rank?.gradientTo || "",
+      gradientFrom: rank?.gradientFrom || "none",
+      gradientTo: rank?.gradientTo || "none",
       imageUrl: rank?.imageUrl || "",
       bestValue: rank?.bestValue || false,
       hoverEffect: rank?.hoverEffect || "",
@@ -480,5 +481,6 @@ export function Ranks() {
     </section>
   );
 }
+
 
     
