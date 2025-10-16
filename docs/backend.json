@@ -246,6 +246,40 @@
         }
       },
       "required": ["displayName"]
+    },
+    "FeatureItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FeatureItem",
+      "type": "object",
+      "description": "Represents a feature package available in the store.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the feature."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the feature."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Name of the lucide-react icon to display."
+        },
+        "color": {
+          "type": "string",
+          "description": "An optional highlight color for the feature card."
+        },
+        "adminKey": {
+          "type": "string",
+          "description": "A secret key to authorize administrative actions."
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "icon",
+        "adminKey"
+      ]
     }
   },
   "auth": {
@@ -351,8 +385,18 @@
             "schema": { "$ref": "#/backend/entities/UserProfile" },
             "description": "Stores public user profile data. Users can only write to their own profile. Display names must be unique, enforced by a separate /displayNames collection."
         }
+      },
+      {
+        "path": "/features/{featureId}",
+        "definition": {
+            "entityName": "FeatureItem",
+            "schema": { "$ref": "#/backend/entities/FeatureItem" },
+            "description": "Stores feature packages. Write access is restricted by an adminKey."
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules where possible, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization, with the exception of ticket messages, which are logically tied to a specific ticket. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by admin status.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, read access is public, and write access controlled by `adminKey`.\n*   `chat_messages`: Stores live chat messages, accessible only to authenticated users.\n*   `users`: Stores user profile information like display names."
+    "reasoning": "The Firestore structure is designed to support the Cloudverse store's data and access patterns, focusing on simplicity, security, and scalability. Authorization Independence is achieved by avoiding `get()` calls in security rules where possible, ensuring atomic operations. All entities are placed in root-level collections to avoid hierarchical authorization, with the exception of ticket messages, which are logically tied to a specific ticket. The structure supports QAPs by ensuring that listing operations can be securely implemented using simple rules based on document existence or equality checks rather than complex filtering.\n\nSpecifically:\n\n*   `coin_packages`: Stores coin package information.\n*   `ranks`: Stores rank information, write access controlled by admin status.\n*   `news_items`: Stores news items for display, write access controlled by `adminKey`.\n*   `feedback`: Stores user feedback. No authentication is required to submit feedback, facilitating ease of use.\n*   `staff`: Stores staff member information, read access is public, and write access controlled by `adminKey`.\n*   `chat_messages`: Stores live chat messages, accessible only to authenticated users.\n*   `users`: Stores user profile information like display names.\n*   `features`: Stores feature packages available in the store, write access controlled by `adminKey`."
   }
 }
+
+    
