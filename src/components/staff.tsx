@@ -87,6 +87,25 @@ const mySkills = [
   },
 ];
 
+const staffRanks = [
+    { name: 'Owner', className: 'bg-red-700/20 text-red-400 border-red-600/30' },
+    { name: 'Network Manager', className: 'bg-red-600/20 text-red-300 border-red-500/30' },
+    { name: 'Manager', className: 'bg-red-500/20 text-red-300 border-red-400/30' },
+    { name: 'Senior Admin', className: 'bg-red-400/20 text-red-200 border-red-300/30' },
+    { name: 'Admin', className: 'bg-red-900/20 text-red-500 border-red-800/30' },
+    { name: 'Senior Mod', className: 'bg-orange-500/20 text-orange-300 border-orange-400/30' },
+    { name: 'Mod', className: 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30' },
+    { name: 'Helper', className: 'bg-green-500/20 text-green-300 border-green-400/30' },
+    { name: 'Developer', className: 'bg-blue-500/20 text-blue-300 border-blue-400/30' },
+    { name: 'Default', className: 'bg-secondary text-secondary-foreground' }
+];
+
+const getRankStyle = (rankName: string) => {
+    const rank = staffRanks.find(r => r.name.toLowerCase() === rankName.toLowerCase());
+    return rank ? rank.className : staffRanks.find(r => r.name === 'Default')!.className;
+};
+
+
 const staffMemberSchema = z.object({
   name: z.string().min(2, "Name is required."),
   imageUrl: z.any().optional(),
@@ -228,7 +247,21 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
 
             <div className="space-y-2">
                 <Label htmlFor="rank">Rank</Label>
-                <Input id="rank" {...register("rank")} placeholder="e.g., Admin, Founder" />
+                <Select onValueChange={(value) => setValue('rank', value, {shouldValidate: true})} value={watch('rank')}>
+                    <SelectTrigger id="rank">
+                        <SelectValue placeholder="Select a rank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {staffRanks.filter(r => r.name !== 'Default').map(rank => (
+                            <SelectItem key={rank.name} value={rank.name}>
+                                <div className="flex items-center gap-2">
+                                    <div className={cn("w-3 h-3 rounded-full", getRankStyle(rank.name))}></div>
+                                    <span>{rank.name}</span>
+                                </div>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 {errors.rank && <p className="text-destructive text-sm">{errors.rank.message}</p>}
             </div>
             
@@ -331,18 +364,6 @@ function TeamManagement() {
     }
   };
 
-  const rankStyles: { [key: string]: string } = {
-    'developer': 'bg-blue-500/20 text-blue-300 border-blue-400/30',
-    'founder': 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30',
-    'admin': 'bg-red-500/20 text-red-300 border-red-400/30',
-    'default': 'bg-secondary text-secondary-foreground'
-  };
-  
-  const getRankStyle = (rank: string) => {
-    const rankLower = rank.toLowerCase();
-    return rankStyles[rankLower] || rankStyles['default'];
-  }
-
   return (
     <>
       <div className="text-center mb-8 flex items-center justify-center gap-4">
@@ -398,25 +419,13 @@ function PublicStaffView() {
   const staffQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "staff")) : null, [firestore]);
   const { data: staff, isLoading } = useCollection<StaffMember>(staffQuery);
 
-  const rankStyles: { [key: string]: string } = {
-    'developer': 'bg-blue-500/20 text-blue-300 border-blue-400/30',
-    'founder': 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30',
-    'admin': 'bg-red-500/20 text-red-300 border-red-400/30',
-    'default': 'bg-secondary text-secondary-foreground'
-  };
-  
-  const getRankStyle = (rank: string) => {
-    const rankLower = rank.toLowerCase();
-    return rankStyles[rankLower] || rankStyles['default'];
-  }
-
   return (
      <div className="space-y-12">
         <Card className="w-full max-w-3xl mx-auto transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent/20 border-2 border-accent">
             <CardHeader className="text-center items-center p-8">
               <Image src="https://hammadprofile.netlify.app/imagie/hammad.webp" alt="Hammad's Profile Picture" width={120} height={120} className="rounded-full mb-4 border-4 border-accent/30 shadow-lg"/>
               <CardTitle className="text-4xl font-black">Hammad</CardTitle>
-              <Badge className={cn("text-sm font-bold uppercase tracking-wider border", getRankStyle('developer'))}>
+              <Badge className={cn("text-sm font-bold uppercase tracking-wider border", getRankStyle('Developer'))}>
                 Developer
               </Badge>
             </CardHeader>
@@ -573,3 +582,5 @@ export function Staff() {
     </section>
   );
 }
+
+    
