@@ -58,6 +58,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { deleteRank } from "@/ai/flows/delete-rank-flow";
+import { HoverEffectsGuide } from "./hover-effects-guide";
 
 const rankSchema = z.object({
   name: z.string().min(1, "Rank name is required."),
@@ -432,10 +433,11 @@ export function Ranks() {
         </div>
 
         {isAuthenticated && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 flex items-center justify-center gap-4">
             <Button onClick={() => handleOpenForm()}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add New Rank
             </Button>
+            <HoverEffectsGuide />
           </div>
         )}
         

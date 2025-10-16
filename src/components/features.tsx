@@ -34,6 +34,7 @@ import { PlusCircle, Edit, Trash, type LucideIcon } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { cn } from "@/lib/utils";
+import { HoverEffectsGuide } from "./hover-effects-guide";
 
 // List of some lucide-react icons. You can expand this.
 const ICON_LIST = [
@@ -255,10 +256,11 @@ export function Features() {
         </div>
         
         {isAuthenticated && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 flex items-center justify-center gap-4">
             <Button onClick={() => handleOpenForm()}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add New Feature
             </Button>
+            <HoverEffectsGuide />
           </div>
         )}
 
@@ -320,5 +322,3 @@ export function Features() {
     </section>
   );
 }
-
-    

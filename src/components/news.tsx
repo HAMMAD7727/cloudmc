@@ -33,6 +33,7 @@ import { Label } from "@/components/ui/label";
 import { PlusCircle, Edit, Trash } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { cn } from "@/lib/utils";
+import { HoverEffectsGuide } from "./hover-effects-guide";
 
 const newsSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
@@ -227,10 +228,11 @@ export function News() {
         </div>
         
         {isAuthenticated && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 flex items-center justify-center gap-4">
             <Button onClick={() => handleOpenForm()}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add News Item
             </Button>
+            <HoverEffectsGuide />
           </div>
         )}
 

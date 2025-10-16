@@ -56,6 +56,7 @@ import { ChevronsUpDown, Code, Gamepad2, Settings, Edit, Trash, PlusCircle, Crow
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { HoverEffectsGuide } from "./hover-effects-guide";
 
 const mySkills = [
   {
@@ -339,8 +340,9 @@ export function Staff() {
         </div>
         
         {isAuthenticated && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 flex items-center justify-center gap-4">
             <Button onClick={() => handleOpenForm()}><PlusCircle className="mr-2 h-4 w-4" /> Add New Staff</Button>
+            <HoverEffectsGuide />
           </div>
         )}
         
@@ -425,5 +427,3 @@ export function Staff() {
     </section>
   );
 }
-
-    
