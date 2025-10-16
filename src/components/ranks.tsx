@@ -203,7 +203,7 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
       gradientTo: rank?.gradientTo || "none",
       imageUrl: rank?.imageUrl || "",
       bestValue: rank?.bestValue || false,
-      hoverEffect: rank?.hoverEffect || "",
+      hoverEffect: rank?.hoverEffect || "None",
     },
   });
 
@@ -226,6 +226,7 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
           textColor: data.textColor === 'none' ? '' : data.textColor,
           gradientFrom: data.gradientFrom === 'none' ? '' : data.gradientFrom,
           gradientTo: data.gradientTo === 'none' ? '' : data.gradientTo,
+          hoverEffect: data.hoverEffect === 'None' ? '' : data.hoverEffect,
         };
 
         if (rank) {
@@ -277,13 +278,13 @@ function RankForm({ rank, onSave }: { rank?: WithId<Rank>; onSave: () => void; }
             </div>
             <div className="space-y-2">
                 <Label htmlFor="hoverEffect">Hover Effect</Label>
-                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect')}>
+                <Select onValueChange={(value) => setValue('hoverEffect', value)} value={watch('hoverEffect') || 'None'}>
                     <SelectTrigger id="hoverEffect">
                         <SelectValue placeholder="Select a hover effect" />
                     </SelectTrigger>
                     <SelectContent>
                         {hoverEffects.map(effect => (
-                            <SelectItem key={effect.name} value={effect.className}>{effect.name}</SelectItem>
+                            <SelectItem key={effect.name} value={effect.name === 'None' ? 'None' : effect.className}>{effect.name}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
@@ -481,6 +482,5 @@ export function Ranks() {
     </section>
   );
 }
-
 
     
