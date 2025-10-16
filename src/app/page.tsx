@@ -54,7 +54,7 @@ export default function Home() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-          <div className="bg-black/20 backdrop-blur-md p-8 rounded-xl space-y-4 animate-slide-in">
+          <div className="bg-black/20 backdrop-blur-md p-6 sm:p-8 rounded-xl space-y-4 animate-slide-in">
             {bannerImage &&
               <div className="bg-white/10 backdrop-blur-sm p-2 rounded-full mb-4 transition-transform duration-300 hover:scale-110 w-fit mx-auto">
                 <Image src={bannerImage.imageUrl} alt="Cloudverse Logo" width={80} height={80} className="rounded-full" data-ai-hint={bannerImage.imageHint}/>
@@ -69,7 +69,7 @@ export default function Home() {
 
             <div className="flex justify-center pt-2 animate-slide-in [animation-delay:0.6s]">
               <div className="flex items-center gap-2 bg-black/50 backdrop-blur-sm p-2 px-4 rounded-full border border-white/10 shadow-lg">
-                <span className="text-white/80 font-mono text-lg md:text-xl">{serverIp}</span>
+                <span className="text-white/80 font-mono text-base sm:text-lg md:text-xl">{serverIp}</span>
                 <Button variant="ghost" size="icon" onClick={copyIp} className="h-8 w-8 rounded-full text-white/80 hover:bg-white/20 hover:text-white">
                   {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
                 </Button>
@@ -89,7 +89,7 @@ export default function Home() {
         <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
           <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b z-10">
             <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="container mx-auto h-16 rounded-none bg-transparent p-0 grid w-full grid-cols-9 sm:inline-flex">
+              <TabsList className="container mx-auto h-16 rounded-none bg-transparent p-0 flex sm:inline-flex">
                 <TabsTrigger value="home" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Home</TabsTrigger>
                 <TabsTrigger value="coins" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Coins</TabsTrigger>
                 <TabsTrigger value="ranks" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Ranks</TabsTrigger>
@@ -146,4 +146,5 @@ export default function Home() {
       </footer>
     </div>
   );
-}
+
+    
