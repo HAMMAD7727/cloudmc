@@ -52,13 +52,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronsUpDown, Code, Gamepad2, Settings, Edit, Trash, PlusCircle, Crown } from "lucide-react";
+import { ChevronsUpDown, Code, Gamepad2, Settings, Edit, Trash, PlusCircle, Crown, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { HoverEffectsGuide } from "./hover-effects-guide";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { hoverEffects } from "@/lib/effects";
+import { useTabStore } from "@/lib/tab-store";
 
 const mySkills = [
   {
@@ -119,11 +120,13 @@ function StaffAdminLogin({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const auth = useAuth();
+  const { setShowStaffTabs } = useTabStore();
 
   const handleLogin = () => {
     if (password === "cloudmcstaff") {
       initiateAnonymousSignIn(auth);
       sessionStorage.setItem("isStaffAdminAuthenticated", "true");
+      setShowStaffTabs(true);
       onLogin();
       toast({ title: "Success", description: "Logged in as staff admin." });
     } else {
@@ -298,6 +301,7 @@ export function Staff() {
   const { data: staff, isLoading } = useCollection<StaffMember>(staffQuery);
   const { toast } = useToast();
   const { user } = useUser();
+  const { setShowStaffTabs, setMainTab } = useTabStore();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -307,10 +311,20 @@ export function Staff() {
     const sessionAuth = sessionStorage.getItem("isStaffAdminAuthenticated");
     if (sessionAuth === "true" && user) {
       setIsAuthenticated(true);
+      setShowStaffTabs(true);
     }
-  }, [user]);
+  }, [user, setShowStaffTabs]);
 
   const handleLogin = () => setIsAuthenticated(true);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("isStaffAdminAuthenticated");
+    setIsAuthenticated(false);
+    setShowStaffTabs(false);
+    setMainTab("home");
+    toast({ title: "Logged out", description: "You have been logged out from the staff panel." });
+  };
+  
   const handleFormSave = () => {
     setIsFormOpen(false);
     setEditingStaff(undefined);
@@ -360,9 +374,10 @@ export function Staff() {
         </div>
         
         {isAuthenticated && (
-          <div className="text-center mb-8 flex items-center justify-center gap-4">
+           <div className="text-center mb-8 flex items-center justify-center gap-4">
             <Button onClick={() => handleOpenForm()}><PlusCircle className="mr-2 h-4 w-4" /> Add New Staff</Button>
             <HoverEffectsGuide />
+            <Button variant="outline" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/>Logout</Button>
           </div>
         )}
         
@@ -447,5 +462,3 @@ export function Staff() {
     </section>
   );
 }
-
-    

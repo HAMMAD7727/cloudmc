@@ -20,10 +20,13 @@ import { Voting } from "@/components/voting";
 import { useTabStore } from "@/lib/tab-store";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Check } from "lucide-react";
+import { StaffGuide } from "@/components/staff-guide";
+import { StaffChat } from "@/components/staff-chat";
+import { StaffPresents } from "@/components/staff-presents";
 
 export default function Home() {
   const bannerImage = PlaceHolderImages.find(img => img.id === 'cloudverse-banner');
-  const { mainTab, setMainTab } = useTabStore();
+  const { mainTab, setMainTab, showStaffTabs } = useTabStore();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -99,6 +102,13 @@ export default function Home() {
                 <TabsTrigger value="voting" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Voting</TabsTrigger>
                 <TabsTrigger value="feedback" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Feedback</TabsTrigger>
                 <TabsTrigger value="staff" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Staff</TabsTrigger>
+                {showStaffTabs && (
+                  <>
+                    <TabsTrigger value="staff-guide" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Staff Guide</TabsTrigger>
+                    <TabsTrigger value="staff-chat" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Staff Chat</TabsTrigger>
+                    <TabsTrigger value="staff-presents" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-none text-base font-semibold transition-colors duration-300 hover:bg-primary/5">Staff Presents</TabsTrigger>
+                  </>
+                )}
               </TabsList>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
@@ -131,6 +141,19 @@ export default function Home() {
           <TabsContent value="staff" className="mt-0">
             <Staff />
           </TabsContent>
+           {showStaffTabs && (
+            <>
+              <TabsContent value="staff-guide" className="mt-0">
+                <StaffGuide />
+              </TabsContent>
+              <TabsContent value="staff-chat" className="mt-0">
+                <StaffChat />
+              </TabsContent>
+              <TabsContent value="staff-presents" className="mt-0">
+                <StaffPresents />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </main>
       <footer className="bg-card border-t">
