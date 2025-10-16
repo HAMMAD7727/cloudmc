@@ -133,17 +133,17 @@ function ChatMessages() {
   if (isLoading) return <p>Loading messages...</p>;
 
   return (
-    <div className="h-96 overflow-y-auto p-4 border rounded-md space-y-4 bg-muted/20">
+    <div className="h-96 overflow-y-auto p-4 border rounded-md space-y-4 bg-blue-900/30">
       {reversedMessages && reversedMessages.length > 0 ? (
         reversedMessages.map((msg) => {
           const isStaff = STAFF_UIDS.includes(msg.userId);
           return (
             <div key={msg.id} className="flex flex-col items-start">
                <div className="flex items-center gap-2">
-                <span className="font-bold">{msg.displayName}</span>
+                <span className="font-bold text-white">{msg.displayName}</span>
                 {isStaff && <Badge variant="secondary">Staff</Badge>}
                </div>
-              <p className="bg-background p-2 rounded-lg shadow-sm">{msg.text}</p>
+              <p className="bg-background/50 p-2 rounded-lg shadow-sm text-green-400">{msg.text}</p>
               <span className="text-xs text-muted-foreground mt-1">
                 {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
               </span>
