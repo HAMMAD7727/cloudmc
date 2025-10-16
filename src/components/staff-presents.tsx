@@ -2,12 +2,17 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Gift } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Gift, ArrowLeft } from "lucide-react";
 
-export function StaffPresents() {
+export function StaffPresents({ onBack }: { onBack: () => void }) {
   return (
     <section id="staff-presents" className="w-full py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
+        <Button variant="outline" onClick={onBack} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4"/>
+          Back to Dashboard
+        </Button>
         <Card className="max-w-4xl mx-auto">
           <CardHeader className="text-center">
             <div className="mx-auto bg-primary/10 rounded-full p-4 w-fit mb-4">

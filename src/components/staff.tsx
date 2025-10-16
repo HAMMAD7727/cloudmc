@@ -52,7 +52,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronsUpDown, Code, Gamepad2, Settings, Edit, Trash, PlusCircle, Crown, LogOut } from "lucide-react";
+import { ChevronsUpDown, Code, Gamepad2, Settings, Edit, Trash, PlusCircle, Crown, LogOut, Users, BookOpen, MessageSquare, Gift, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
@@ -60,6 +60,9 @@ import { HoverEffectsGuide } from "./hover-effects-guide";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { hoverEffects } from "@/lib/effects";
 import { useTabStore } from "@/lib/tab-store";
+import { StaffGuide } from "./staff-guide";
+import { StaffChat } from "./staff-chat";
+import { StaffPresents } from "./staff-presents";
 
 const mySkills = [
   {
@@ -116,17 +119,18 @@ type StaffMember = {
   hoverEffect?: string;
 };
 
+type StaffView = 'dashboard' | 'manage' | 'guide' | 'chat' | 'presents';
+
+
 function StaffAdminLogin({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const auth = useAuth();
-  const { setShowStaffTabs } = useTabStore();
 
   const handleLogin = () => {
     if (password === "cloudmcstaff") {
       initiateAnonymousSignIn(auth);
       sessionStorage.setItem("isStaffAdminAuthenticated", "true");
-      setShowStaffTabs(true);
       onLogin();
       toast({ title: "Success", description: "Logged in as staff admin." });
     } else {
@@ -294,41 +298,19 @@ function StaffForm({ staffMember, onSave }: { staffMember?: WithId<StaffMember>;
   );
 }
 
-
-export function Staff() {
+function TeamManagement() {
   const firestore = useFirestore();
   const staffQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "staff")) : null, [firestore]);
   const { data: staff, isLoading } = useCollection<StaffMember>(staffQuery);
   const { toast } = useToast();
-  const { user } = useUser();
-  const { setShowStaffTabs, setMainTab } = useTabStore();
-
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<WithId<StaffMember> | undefined>(undefined);
 
-  useEffect(() => {
-    const sessionAuth = sessionStorage.getItem("isStaffAdminAuthenticated");
-    if (sessionAuth === "true" && user) {
-      setIsAuthenticated(true);
-      setShowStaffTabs(true);
-    }
-  }, [user, setShowStaffTabs]);
-
-  const handleLogin = () => setIsAuthenticated(true);
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("isStaffAdminAuthenticated");
-    setIsAuthenticated(false);
-    setShowStaffTabs(false);
-    setMainTab("home");
-    toast({ title: "Logged out", description: "You have been logged out from the staff panel." });
-  };
-  
   const handleFormSave = () => {
     setIsFormOpen(false);
     setEditingStaff(undefined);
   };
+
   const handleOpenForm = (staffMember?: WithId<StaffMember>) => {
     setEditingStaff(staffMember);
     setIsFormOpen(true);
@@ -348,7 +330,7 @@ export function Staff() {
         });
     }
   };
-  
+
   const rankStyles: { [key: string]: string } = {
     'developer': 'bg-blue-500/20 text-blue-300 border-blue-400/30',
     'founder': 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30',
@@ -361,39 +343,76 @@ export function Staff() {
     return rankStyles[rankLower] || rankStyles['default'];
   }
 
+  return (
+    <>
+      <div className="text-center mb-8 flex items-center justify-center gap-4">
+        <Button onClick={() => handleOpenForm()}><PlusCircle className="mr-2 h-4 w-4" /> Add New Staff</Button>
+        <HoverEffectsGuide />
+      </div>
+
+      <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setEditingStaff(undefined); } setIsFormOpen(open); }}>
+        <DialogContent className="max-w-lg p-0">
+          <DialogHeader className="p-6 pb-0">
+              <DialogTitle>{editingStaff ? 'Edit' : 'Add'} Staff Member</DialogTitle>
+              <CardDescription>Manage the details for your team members.</CardDescription>
+          </DialogHeader>
+          <StaffForm staffMember={editingStaff} onSave={handleFormSave} />
+        </DialogContent>
+      </Dialog>
+      
+      {isLoading ? (
+        <p className="text-center">Loading staff...</p>
+      ) : staff && staff.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+          {staff.map((member, index) => (
+            <Card key={member.id} className={cn("flex flex-col text-center items-center transition-all duration-300 relative group animate-slide-in", member.hoverEffect)} style={{animationDelay: `${index * 100}ms`}}>
+              <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenForm(member)}><Edit className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDelete(member.id)}><Trash className="h-4 w-4 text-destructive" /></Button>
+              </div>
+              <CardHeader className="pt-8 w-full">
+                {member.imageUrl && (
+                  <Image src={member.imageUrl} alt={`${member.name}'s profile picture`} width={80} height={80} className="rounded-full border-4 border-primary/10 shadow-md mx-auto"/>
+                )}
+                <CardTitle className="text-2xl font-bold mt-4">{member.name}</CardTitle>
+                <Badge className={cn("text-xs font-bold uppercase tracking-wider mx-auto border", getRankStyle(member.rank))}>
+                  {member.rank.toLowerCase() === 'founder' && <Crown className="w-3 h-3 mr-1.5"/>}
+                  {member.rank}
+                </Badge>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground">{member.roleDescription}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-muted-foreground col-span-full pt-12">No other staff members have been added yet.</p>
+      )}
+    </>
+  )
+}
+
+function PublicStaffView() {
+  const firestore = useFirestore();
+  const staffQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "staff")) : null, [firestore]);
+  const { data: staff, isLoading } = useCollection<StaffMember>(staffQuery);
+
+  const rankStyles: { [key: string]: string } = {
+    'developer': 'bg-blue-500/20 text-blue-300 border-blue-400/30',
+    'founder': 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30',
+    'admin': 'bg-red-500/20 text-red-300 border-red-400/30',
+    'default': 'bg-secondary text-secondary-foreground'
+  };
+  
+  const getRankStyle = (rank: string) => {
+    const rankLower = rank.toLowerCase();
+    return rankStyles[rankLower] || rankStyles['default'];
+  }
 
   return (
-    <section id="staff" className="w-full py-16 md:py-24 relative">
-      {!isAuthenticated && <StaffAdminLogin onLogin={handleLogin} />}
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center space-y-4 mb-12">
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight font-headline animate-slide-in">Our Staff</h2>
-           <CardDescription className="max-w-2xl mx-auto !text-lg">
-            Meet the dedicated team that keeps Cloudverse running.
-          </CardDescription>
-        </div>
-        
-        {isAuthenticated && (
-           <div className="text-center mb-8 flex items-center justify-center gap-4">
-            <Button onClick={() => handleOpenForm()}><PlusCircle className="mr-2 h-4 w-4" /> Add New Staff</Button>
-            <HoverEffectsGuide />
-            <Button variant="outline" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/>Logout</Button>
-          </div>
-        )}
-        
-        <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setEditingStaff(undefined); } setIsFormOpen(open); }}>
-          <DialogContent className="max-w-lg p-0">
-            <DialogHeader className="p-6 pb-0">
-                <DialogTitle>{editingStaff ? 'Edit' : 'Add'} Staff Member</DialogTitle>
-                <CardDescription>Manage the details for your team members.</CardDescription>
-            </DialogHeader>
-            <StaffForm staffMember={editingStaff} onSave={handleFormSave} />
-          </DialogContent>
-        </Dialog>
-
-        <div className="space-y-12">
-          {/* Hammad's Static Profile */}
-          <Card className="w-full max-w-3xl mx-auto transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent/20 border-2 border-accent">
+     <div className="space-y-12">
+        <Card className="w-full max-w-3xl mx-auto transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent/20 border-2 border-accent">
             <CardHeader className="text-center items-center p-8">
               <Image src="https://hammadprofile.netlify.app/imagie/hammad.webp" alt="Hammad's Profile Picture" width={120} height={120} className="rounded-full mb-4 border-4 border-accent/30 shadow-lg"/>
               <CardTitle className="text-4xl font-black">Hammad</CardTitle>
@@ -432,12 +451,6 @@ export function Staff() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 pt-12">
               {staff.map((member, index) => (
                 <Card key={member.id} className={cn("flex flex-col text-center items-center transition-all duration-300 relative group animate-slide-in", member.hoverEffect)} style={{animationDelay: `${index * 100}ms`}}>
-                   {isAuthenticated && (
-                    <div className="absolute top-2 right-2 flex gap-1 bg-background/50 backdrop-blur-sm rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenForm(member)}><Edit className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDelete(member.id)}><Trash className="h-4 w-4 text-destructive" /></Button>
-                    </div>
-                  )}
                   <CardHeader className="pt-8 w-full">
                     {member.imageUrl && (
                       <Image src={member.imageUrl} alt={`${member.name}'s profile picture`} width={80} height={80} className="rounded-full border-4 border-primary/10 shadow-md mx-auto"/>
@@ -458,6 +471,104 @@ export function Staff() {
             <p className="text-center text-muted-foreground col-span-full pt-12">No other staff members have been added yet.</p>
           )}
         </div>
+  )
+}
+
+export function Staff() {
+  const { user } = useUser();
+  const { toast } = useToast();
+  const { setMainTab } = useTabStore();
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeView, setActiveView] = useState<StaffView>('dashboard');
+
+  useEffect(() => {
+    const sessionAuth = sessionStorage.getItem("isStaffAdminAuthenticated");
+    if (sessionAuth === "true" && user) {
+      setIsAuthenticated(true);
+    }
+  }, [user]);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setActiveView('dashboard');
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("isStaffAdminAuthenticated");
+    setIsAuthenticated(false);
+    setActiveView('dashboard');
+    toast({ title: "Logged out", description: "You have been logged out from the staff panel." });
+  };
+  
+  const renderContent = () => {
+    if (!isAuthenticated) {
+      return <PublicStaffView />;
+    }
+    
+    switch (activeView) {
+      case 'dashboard':
+        return (
+          <Card className="max-w-4xl mx-auto">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-bold">Staff Dashboard</CardTitle>
+              <CardDescription>Select a tool to get started.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+              <Button variant="outline" className="h-24 flex-col gap-2" onClick={() => setActiveView('manage')}>
+                <Users className="w-6 h-6"/>
+                Manage Team
+              </Button>
+               <Button variant="outline" className="h-24 flex-col gap-2" onClick={() => setActiveView('guide')}>
+                <BookOpen className="w-6 h-6"/>
+                Staff Guide
+              </Button>
+               <Button variant="outline" className="h-24 flex-col gap-2" onClick={() => setActiveView('chat')}>
+                <MessageSquare className="w-6 h-6"/>
+                Staff Chat
+              </Button>
+               <Button variant="outline" className="h-24 flex-col gap-2" onClick={() => setActiveView('presents')}>
+                <Gift className="w-6 h-6"/>
+                Staff Presents
+              </Button>
+            </CardContent>
+             <CardFooter className="justify-center">
+              <Button variant="ghost" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/>Logout</Button>
+            </CardFooter>
+          </Card>
+        );
+      case 'manage':
+        return (
+            <div>
+                <Button variant="outline" onClick={() => setActiveView('dashboard')} className="mb-6"><ArrowLeft className="mr-2 h-4 w-4"/>Back to Dashboard</Button>
+                <TeamManagement />
+            </div>
+        );
+      case 'guide':
+        return <StaffGuide onBack={() => setActiveView('dashboard')} />;
+      case 'chat':
+        return <StaffChat onBack={() => setActiveView('dashboard')} />;
+      case 'presents':
+        return <StaffPresents onBack={() => setActiveView('dashboard')} />;
+      default:
+        return <PublicStaffView />;
+    }
+  }
+
+
+  return (
+    <section id="staff" className="w-full py-16 md:py-24 relative">
+      {!isAuthenticated && <StaffAdminLogin onLogin={handleLogin} />}
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="text-center space-y-4 mb-12">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight font-headline animate-slide-in">Our Staff</h2>
+           <CardDescription className="max-w-2xl mx-auto !text-lg">
+            Meet the dedicated team that keeps Cloudverse running.
+          </CardDescription>
+        </div>
+        
+        {renderContent()}
+
       </div>
     </section>
   );
