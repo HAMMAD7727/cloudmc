@@ -582,5 +582,3 @@ export function Staff() {
     </section>
   );
 }
-
-    
