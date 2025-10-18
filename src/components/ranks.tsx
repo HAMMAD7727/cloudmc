@@ -110,7 +110,7 @@ const PRESET_COLORS = [
 ];
 
 function ColorSelect({ value, onChange }: { value?: string; onChange: (value: string) => void }) {
-  const selectValue = value && value !== "none" ? value : "none";
+  const selectValue = value && value !== "" ? value : "none";
   return (
     <Select onValueChange={onChange} value={selectValue}>
       <SelectTrigger>
@@ -372,22 +372,20 @@ export function Ranks() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (rankId: string) => {
-    const adminKey = window.prompt("Please enter the admin key to delete this rank:");
-    if (!adminKey) {
-        toast({ variant: "destructive", title: "Canceled", description: "Deletion canceled." });
-        return;
+  const handleDelete = async (rankId: string, rankName: string) => {
+    if (!window.confirm(`Are you sure you want to delete the "${rankName}" rank?`)) {
+      return;
     }
 
     try {
-        await deleteRank({ rankId, adminKey });
-        toast({ title: "Success", description: "Rank deleted successfully." });
+      await deleteRank({ rankId });
+      toast({ title: "Success", description: `Rank "${rankName}" deleted successfully.` });
     } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: error.message || "Could not delete rank.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Could not delete rank.",
+      });
     }
   };
 
@@ -409,7 +407,7 @@ export function Ranks() {
             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleOpenForm(rank)}>
               <Edit className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDelete(rank.id)}>
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDelete(rank.id, rank.name)}>
               <Trash className="h-4 w-4 text-destructive" />
             </Button>
           </div>
