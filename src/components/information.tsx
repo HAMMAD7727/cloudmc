@@ -23,7 +23,7 @@ export function Information() {
         </div>
 
         <div className="max-w-4xl mx-auto space-y-8">
-          <Card className="transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20">
+          <Card className="transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1">
             <CardHeader>
               <CardTitle>
                 🎄 Platform Focus: YouTube (Primary)
@@ -54,7 +54,7 @@ export function Information() {
             </CardContent>
           </Card>
 
-          <Card className="transition-all duration-300 hover:shadow-2xl hover:shadow-accent/20">
+          <Card className="transition-all duration-300 hover:shadow-2xl hover:shadow-accent/20 hover:-translate-y-1">
             <CardHeader>
               <CardTitle>🌍 Alternate Platform Requirements 🗺</CardTitle>
             </CardHeader>
@@ -78,7 +78,7 @@ export function Information() {
             </CardContent>
           </Card>
 
-          <Card className="transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20">
+          <Card className="transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1">
             <CardHeader>
               <CardTitle>🎭 Perks of Media Rank</CardTitle>
             </CardHeader>
@@ -93,7 +93,7 @@ export function Information() {
             </CardContent>
           </Card>
           
-           <Card className="border-destructive/50 transition-all duration-300 hover:shadow-2xl hover:shadow-destructive/20">
+           <Card className="border-destructive/50 transition-all duration-300 hover:shadow-2xl hover:shadow-destructive/20 hover:-translate-y-1">
             <CardHeader>
               <CardTitle className="text-destructive">💣 Maintenance & Removal</CardTitle>
             </CardHeader>
