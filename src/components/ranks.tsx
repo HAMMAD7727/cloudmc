@@ -21,6 +21,7 @@ import {
   type WithId,
   addDocumentNonBlocking,
   setDocumentNonBlocking,
+  deleteDocumentNonBlocking,
   useStorage,
 } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +58,6 @@ import { BuyNowButton } from "./buy-now-button";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "./ui/checkbox";
-import { deleteRank } from "@/ai/flows/delete-rank-flow";
 import { HoverEffectsGuide } from "./hover-effects-guide";
 import { hoverEffects } from "@/lib/effects";
 
@@ -373,12 +373,12 @@ export function Ranks() {
   };
 
   const handleDelete = async (rankId: string, rankName: string) => {
-    if (!window.confirm(`Are you sure you want to delete the "${rankName}" rank?`)) {
+    if (!firestore || !window.confirm(`Are you sure you want to delete the "${rankName}" rank?`)) {
       return;
     }
 
     try {
-      await deleteRank({ rankId });
+      await deleteDocumentNonBlocking(doc(firestore, 'ranks', rankId));
       toast({ title: "Success", description: `Rank "${rankName}" deleted successfully.` });
     } catch (error: any) {
       toast({
@@ -480,5 +480,3 @@ export function Ranks() {
     </section>
   );
 }
-
-    
